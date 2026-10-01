@@ -1,0 +1,9 @@
+node_modules
+dist
+src/generated
+.env
+Dockerfile
+.dockerignore
+.agents
+.claude
+.windsurf
