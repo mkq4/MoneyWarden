@@ -4,6 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { createDefaultCategories } from '../categories/default-categories.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';
@@ -24,12 +26,10 @@ export class AuthService {
     });
     if (existing) throw new ConflictException('Логин уже занят');
 
-    const user = await this.prisma.user.create({
-      data: {
-        username: dto.username,
-        name: dto.name ?? null,
-        passwordHash: await hashPassword(dto.password),
-      },
+    const user = await this.createUser({
+      username: dto.username,
+      name: dto.name ?? null,
+      passwordHash: await hashPassword(dto.password),
     });
     return this.tokens.issue(user.id);
   }
@@ -63,16 +63,27 @@ export class AuthService {
     if (account) return this.tokens.issue(account.userId);
 
     const email = profile.emailVerified ? profile.email : null;
-    const user = email
-      ? await this.prisma.user.upsert({
-          where: { email },
-          update: { accounts },
-          create: { email, name: profile.name, accounts },
-        })
-      : await this.prisma.user.create({
-          data: { name: profile.name, accounts },
-        });
+    const existing = email
+      ? await this.prisma.user.findUnique({ where: { email } })
+      : null;
+    if (existing) {
+      await this.prisma.account.create({
+        data: { provider, providerAccountId, userId: existing.id },
+      });
+      return this.tokens.issue(existing.id);
+    }
+
+    const user = await this.createUser({ email, name: profile.name, accounts });
     return this.tokens.issue(user.id);
+  }
+
+  /** Новый пользователь сразу получает стартовый набор категорий. */
+  private createUser(data: Prisma.UserCreateInput) {
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({ data });
+      await createDefaultCategories(tx, user.id);
+      return user;
+    });
   }
 
   async getProfile(userId: number) {

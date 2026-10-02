@@ -23,6 +23,8 @@ model User {
   updatedAt     DateTime       @updatedAt
   accounts      Account[]
   refreshTokens RefreshToken[]
+  categories    Category[]
+  transactions  Transaction[]
 }
 
 enum AuthProvider {
@@ -54,4 +56,46 @@ model RefreshToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Category {
+  id           Int             @id @default(autoincrement())
+  userId       Int
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  type         TransactionType
+  /// "#RRGGBB"
+  color        String?
+  /// Ключ иконки для фронта
+  icon         String?
+  /// Мягкое удаление: категория скрыта из выбора, но остаётся в истории
+  archivedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  transactions Transaction[]
+
+  @@index([userId, type])
+}
+
+model Transaction {
+  id         Int             @id @default(autoincrement())
+  userId     Int
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       TransactionType
+  /// Сумма в копейках, всегда > 0; направление задаёт type
+  amount     Int
+  categoryId Int
+  category   Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  /// День операции без времени — группировки не зависят от часового пояса
+  date       DateTime        @db.Date
+  comment    String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, categoryId, date])
 }

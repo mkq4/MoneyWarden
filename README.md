@@ -114,6 +114,14 @@ npx shadcn@latest add card input dialog
 
 Внутри Docker фронтенд ходит в API по `http://backend:4000`. Если понадобятся запросы к API прямо из браузера, добавьте `NEXT_PUBLIC_API_URL` (он вшивается в бандл на этапе сборки, поэтому передавать его нужно как build arg).
 
+## Фронтенд
+
+- Экраны: `/login` (вход/регистрация), `/` (на телефоне — быстрые действия, на десктопе — дашборд), `/home`, `/history`, `/stats`, `/settings`.
+- `frontend/src/proxy.ts` проксирует `/api/*` на бэкенд (`API_URL`, в рантайме), поэтому куки авторизации first-party и CORS не нужен.
+  Он же не пускает на страницы без куки `session` (маркер сессии, ставит бэкенд).
+- Данные грузятся на клиенте через TanStack Query (`src/lib/queries.ts`); на 401 `src/lib/api.ts` один раз вызывает refresh.
+- Выбранный месяц хранится в `?m=YYYY-MM` и общий для всех страниц.
+
 ## Авторизация
 
 Токены живут в httpOnly-куках: `access_token` (JWT, 15 мин) и `refresh_token` (30 дней, ротируется, в БД хранится sha256).
@@ -144,3 +152,38 @@ VK отдаёт email не всегда, поэтому `User.email` может 
 1. [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials) → Create OAuth client ID → Web application.
 2. Authorized redirect URI: `http://localhost:4000/api/auth/google/callback`.
 3. Прописать `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` в `.env` (и `backend/.env` для локального запуска).
+
+## API финансов
+
+Все эндпоинты ниже требуют авторизации. **Суммы — целые числа в копейках**, даты — `YYYY-MM-DD`.
+Период задаётся через `?month=YYYY-MM` или `?from=YYYY-MM-DD&to=YYYY-MM-DD`; если не указан, берётся текущий месяц.
+
+### Категории
+
+У нового пользователя сразу есть стартовый набор (10 расходных + 5 доходных).
+
+| Метод | Путь | Описание |
+| ----- | ---- | -------- |
+| GET | `/api/categories?type=EXPENSE&includeArchived=true` | список |
+| POST | `/api/categories` | `{ name, type: INCOME\|EXPENSE, color?: "#RRGGBB", icon? }` |
+| PATCH | `/api/categories/:id` | `{ name?, color?, icon?, archived? }`, тип менять нельзя |
+| DELETE | `/api/categories/:id` | если есть операции — в архив (`{archived:true}`), иначе удаление |
+
+### Операции
+
+Тип операции (доход/расход) берётся из категории.
+
+| Метод | Путь | Описание |
+| ----- | ---- | -------- |
+| GET | `/api/transactions` | история; фильтры `type`, `categoryIds=1,2`, период, `minAmount`, `maxAmount`, `search` (по комментарию), `page`, `limit≤100`. Ответ: `{ items, total, page, limit, sums: { income, expense } }` |
+| POST | `/api/transactions` | `{ categoryId, amount, date, comment? }` |
+| GET / PATCH / DELETE | `/api/transactions/:id` | PATCH принимает любые поля из POST; смена категории может сменить тип |
+
+### Статистика
+
+| Метод | Путь | Описание |
+| ----- | ---- | -------- |
+| GET | `/api/stats/summary` | доходы, расходы, баланс, число операций + `previous` (прошлый месяц или такой же период до) + `change` в % |
+| GET | `/api/stats/categories?type=EXPENSE` | по категориям: сумма, кол-во, доля 0..1, по убыванию |
+| GET | `/api/stats/monthly?months=12&until=YYYY-MM&categoryId=` | помесячно доходы/расходы/баланс, пустые месяцы = 0 |
+| GET | `/api/stats/daily?month=YYYY-MM&type=EXPENSE` | по дням месяца + `total`, `avgPerDay`, `maxDay` |
