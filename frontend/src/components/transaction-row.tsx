@@ -21,8 +21,8 @@ export function TransactionRow({
 }) {
   const { openEdit } = useTransactionDialog();
   const income = tx.type === "INCOME";
-  const title = tx.comment || tx.category.name;
-  const subtitle = tx.comment ? tx.category.name : income ? "Доход" : "Расход";
+  const saving = tx.type === "SAVING" || tx.type === "SAVING_ADJUSTMENT";
+  const { title, subtitle } = describe(tx);
 
   // Обёртка нужна, чтобы разделитель списка (divide-y) не скруглялся вместе с кнопкой.
   return (
@@ -32,8 +32,8 @@ export function TransactionRow({
         onClick={() => openEdit(tx)}
         className="group -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-xl px-2 py-3 text-left transition hover:bg-muted/60"
       >
-        {income ? (
-          <TypeBadge type="INCOME" size="md" />
+        {income || saving || !tx.category ? (
+          <TypeBadge type={tx.type} size="md" />
         ) : (
           <CategoryIcon icon={tx.category.icon} color={tx.category.color} />
         )}
@@ -48,6 +48,7 @@ export function TransactionRow({
             className={cn(
               "text-sm font-semibold tabular-nums",
               income && "text-income",
+              saving && "text-brand",
             )}
           >
             {formatSigned(tx.amount, tx.type)}
@@ -62,4 +63,23 @@ export function TransactionRow({
       </button>
     </div>
   );
+}
+
+const SAVING_LABELS = {
+  SAVING: "Отложено",
+  SAVING_ADJUSTMENT: "Корректировка накоплений",
+} as const;
+
+/**
+ * Заголовок — комментарий (если есть) или категория/название типа;
+ * подзаголовок — категория или «Доход»/«Расход»/«Накопления».
+ */
+function describe(tx: Transaction): { title: string; subtitle: string } {
+  if (tx.type === "SAVING" || tx.type === "SAVING_ADJUSTMENT") {
+    const label = SAVING_LABELS[tx.type];
+    return tx.comment ? { title: tx.comment, subtitle: label } : { title: label, subtitle: "Накопления" };
+  }
+  const fallback = tx.type === "INCOME" ? "Доход" : "Расход";
+  const category = tx.category?.name ?? fallback;
+  return tx.comment ? { title: tx.comment, subtitle: category } : { title: category, subtitle: fallback };
 }

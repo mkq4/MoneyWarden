@@ -100,6 +100,11 @@ export default function HistoryPage() {
                 Доходы: <span className="font-semibold text-income">{formatMoney(first.sums.income)}</span>
               </span>
             )}
+            {type === "ALL" && first.sums.saved > 0 && (
+              <span>
+                Отложено: <span className="font-semibold text-brand">{formatMoney(first.sums.saved)}</span>
+              </span>
+            )}
           </div>
         )}
 

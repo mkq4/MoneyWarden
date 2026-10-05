@@ -1,27 +1,46 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { CalendarDays, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronRight } from "lucide-react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CategoryIcon } from "@/components/category-icon";
-import { TypeBadge } from "@/components/type-badge";
-import { Button } from "@/components/ui/button";
-import { formatDay, toISODate } from "@/lib/format";
+import { toISODate } from "@/lib/format";
 import { useCategories, useDeleteTransaction, useSaveTransaction } from "@/lib/queries";
-import type { Category, Transaction, TransactionType } from "@/lib/types";
+import type { Category, CategoryType, Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { displayAmount, fromKopecks, pressKey, toKopecks } from "./amount";
+import { fromKopecks, pressKey, toKopecks } from "./amount";
 import { CategoryPicker } from "./category-picker";
+import { AmountHero, DateChip, FormShell, SaveButton, useAmountKeyboard } from "./form-parts";
 import { Keypad } from "./keypad";
+import { AdjustmentView, BalanceForm, SavingForm } from "./savings-forms";
 
 type Mode =
-  | { kind: "add"; type: TransactionType; onSaved?: () => void }
-  | { kind: "edit"; tx: Transaction; onSaved?: () => void };
+  | { kind: "add"; type: CategoryType; onSaved?: () => void }
+  | { kind: "edit"; tx: Transaction; onSaved?: () => void }
+  | { kind: "saving"; tx?: Transaction; onSaved?: () => void }
+  | { kind: "balance"; onSaved?: () => void }
+  | { kind: "adjustment"; tx: Transaction; onSaved?: () => void };
+
+type Opts = { onSaved?: () => void };
 
 interface TransactionDialogApi {
-  openAdd: (type: TransactionType, opts?: { onSaved?: () => void }) => void;
+  openAdd: (type: CategoryType, opts?: Opts) => void;
+  /** Открывает подходящую форму по типу операции */
   openEdit: (tx: Transaction) => void;
+  openSaving: (opts?: Opts) => void;
+  openBalance: (opts?: Opts) => void;
+}
+
+function modeForTransaction(tx: Transaction): Mode {
+  switch (tx.type) {
+    case "SAVING":
+      return { kind: "saving", tx };
+    case "SAVING_ADJUSTMENT":
+      return { kind: "adjustment", tx };
+    default:
+      return { kind: "edit", tx };
+  }
 }
 
 const Ctx = createContext<TransactionDialogApi | null>(null);
@@ -40,21 +59,19 @@ export function TransactionDialogProvider({ children }: { children: React.ReactN
   // Фокус — на само окно, а не на кнопку «назад» (иначе на ней висит обводка).
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const api = useMemo<TransactionDialogApi>(
-    () => ({
-      openAdd: (type, opts) => {
-        setMode({ kind: "add", type, onSaved: opts?.onSaved });
-        setFormKey((k) => k + 1);
-        setOpen(true);
-      },
-      openEdit: (tx) => {
-        setMode({ kind: "edit", tx });
-        setFormKey((k) => k + 1);
-        setOpen(true);
-      },
-    }),
-    [],
-  );
+  const api = useMemo<TransactionDialogApi>(() => {
+    const show = (next: Mode) => {
+      setMode(next);
+      setFormKey((k) => k + 1);
+      setOpen(true);
+    };
+    return {
+      openAdd: (type, opts) => show({ kind: "add", type, onSaved: opts?.onSaved }),
+      openEdit: (tx) => show(modeForTransaction(tx)),
+      openSaving: (opts) => show({ kind: "saving", onSaved: opts?.onSaved }),
+      openBalance: (opts) => show({ kind: "balance", onSaved: opts?.onSaved }),
+    };
+  }, []);
 
   return (
     <Ctx.Provider value={api}>
@@ -74,7 +91,7 @@ export function TransactionDialogProvider({ children }: { children: React.ReactN
             )}
           >
             {mode && (
-              <TransactionForm
+              <DialogBody
                 key={formKey}
                 mode={mode}
                 onDone={() => {
@@ -91,9 +108,23 @@ export function TransactionDialogProvider({ children }: { children: React.ReactN
   );
 }
 
+function DialogBody({ mode, onDone, onClose }: { mode: Mode; onDone: () => void; onClose: () => void }) {
+  switch (mode.kind) {
+    case "add":
+    case "edit":
+      return <TransactionForm mode={mode} onDone={onDone} onClose={onClose} />;
+    case "saving":
+      return <SavingForm tx={mode.tx} onDone={onDone} onClose={onClose} />;
+    case "balance":
+      return <BalanceForm onDone={onDone} onClose={onClose} />;
+    case "adjustment":
+      return <AdjustmentView tx={mode.tx} onDone={onDone} onClose={onClose} />;
+  }
+}
+
 const LAST_CATEGORY_KEY = "mw:last-category:";
 
-function readLastCategory(type: TransactionType): number | null {
+function readLastCategory(type: CategoryType): number | null {
   try {
     const v = localStorage.getItem(LAST_CATEGORY_KEY + type);
     return v ? Number(v) : null;
@@ -102,7 +133,7 @@ function readLastCategory(type: TransactionType): number | null {
   }
 }
 
-function writeLastCategory(type: TransactionType, id: number) {
+function writeLastCategory(type: CategoryType, id: number) {
   try {
     localStorage.setItem(LAST_CATEGORY_KEY + type, String(id));
   } catch {
@@ -115,19 +146,21 @@ function TransactionForm({
   onDone,
   onClose,
 }: {
-  mode: Mode;
+  mode: Extract<Mode, { kind: "add" | "edit" }>;
   onDone: () => void;
   onClose: () => void;
 }) {
   const editing = mode.kind === "edit" ? mode.tx : null;
-  const [type, setType] = useState<TransactionType>(editing?.type ?? (mode.kind === "add" ? mode.type : "EXPENSE"));
+  // Сюда попадают только доходы и расходы — у них тип совпадает с типом категории.
+  const [type, setType] = useState<CategoryType>(
+    mode.kind === "add" ? mode.type : (mode.tx.type as CategoryType),
+  );
   const [amount, setAmount] = useState(editing ? fromKopecks(editing.amount) : "");
   // null — пользователь ещё не выбирал: берём категорию по умолчанию
   const [pickedId, setCategoryId] = useState<number | null>(editing?.categoryId ?? null);
   const [date, setDate] = useState(editing?.date ?? toISODate(new Date()));
   const [comment, setComment] = useState(editing?.comment ?? "");
   const [step, setStep] = useState<"amount" | "category">("amount");
-  const dateRef = useRef<HTMLInputElement>(null);
 
   // При редактировании категорию можно поменять на категорию другого типа —
   // поэтому грузим все активные и фильтруем по текущему типу.
@@ -146,7 +179,7 @@ function TransactionForm({
 
   const category: Pick<Category, "id" | "name" | "icon" | "color"> | undefined =
     categories.find((c) => c.id === categoryId) ??
-    (editing && editing.categoryId === categoryId ? editing.category : undefined);
+    (editing && editing.categoryId === categoryId ? (editing.category ?? undefined) : undefined);
 
   const kopecks = toKopecks(amount);
   const canSave = kopecks > 0 && !!categoryId && !save.isPending;
@@ -166,26 +199,7 @@ function TransactionForm({
     );
   }, [canSave, categoryId, comment, date, editing, kopecks, onDone, save, type]);
 
-  // Ввод суммы с физической клавиатуры (кроме случаев, когда фокус в поле ввода).
-  useEffect(() => {
-    if (step !== "amount") return;
-    const onKey = (e: KeyboardEvent) => {
-      const inField = e.target instanceof HTMLInputElement;
-      if (e.key === "Enter") {
-        e.preventDefault();
-        submit();
-        return;
-      }
-      if (inField || e.metaKey || e.ctrlKey || e.altKey) return;
-      const key = e.key === "Backspace" ? "backspace" : e.key === "." ? "," : e.key;
-      if (/^[\d,]$/.test(key) || key === "backspace") {
-        e.preventDefault();
-        setAmount((v) => pressKey(v, key));
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [step, submit]);
+  useAmountKeyboard(setAmount, submit, step === "amount");
 
   const title =
     step === "category"
@@ -204,30 +218,11 @@ function TransactionForm({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),0.75rem)] pb-[max(env(safe-area-inset-bottom),1.25rem)] sm:pt-4">
-      {/* Шапка: ‹  Заголовок  [🗑] */}
-      <div className="relative flex h-11 items-center justify-center">
-        <button
-          type="button"
-          onClick={() => (step === "category" ? setStep("amount") : onClose())}
-          className="absolute left-0 flex size-9 items-center justify-center rounded-full transition hover:bg-muted"
-          aria-label="Назад"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-        <DialogPrimitive.Title className="text-[15px] font-semibold">{title}</DialogPrimitive.Title>
-        {editing && step === "amount" && (
-          <button
-            type="button"
-            onClick={deleteTx}
-            className="absolute right-0 flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-expense-soft hover:text-expense"
-            aria-label="Удалить операцию"
-          >
-            <Trash2 className="size-[18px]" />
-          </button>
-        )}
-      </div>
-
+    <FormShell
+      title={title}
+      onBack={() => (step === "category" ? setStep("amount") : onClose())}
+      onDelete={editing && step === "amount" ? deleteTx : undefined}
+    >
       {step === "category" ? (
         <div className="-mx-5 mt-3 min-h-0 flex-1 overflow-y-auto px-5 sm:max-h-[520px]">
           <CategoryPicker
@@ -255,18 +250,7 @@ function TransactionForm({
         </div>
       ) : (
         <>
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 py-6 sm:flex-none sm:py-7">
-            <TypeBadge type={type} size="xl" />
-            <div
-              className={cn(
-                "text-center text-5xl font-normal tracking-tight tabular-nums transition-colors",
-                !kopecks && "text-foreground/80",
-              )}
-              aria-live="polite"
-            >
-              {displayAmount(amount)} ₽
-            </div>
-          </div>
+          <AmountHero type={type} amount={amount} />
 
           <div className="space-y-2">
             <div className="text-[13px] text-muted-foreground">Категория</div>
@@ -287,24 +271,7 @@ function TransactionForm({
             </button>
 
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => dateRef.current?.showPicker?.()}
-                className="relative flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-muted px-3 text-sm transition hover:bg-accent"
-              >
-                <CalendarDays className="size-4 text-muted-foreground" />
-                {formatDay(date)}
-                <input
-                  ref={dateRef}
-                  type="date"
-                  value={date}
-                  max={toISODate(new Date())}
-                  onChange={(e) => e.target.value && setDate(e.target.value)}
-                  className="pointer-events-none absolute inset-0 opacity-0"
-                  tabIndex={-1}
-                  aria-label="Дата операции"
-                />
-              </button>
+              <DateChip value={date} onChange={setDate} />
               <input
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -319,18 +286,9 @@ function TransactionForm({
             <Keypad onKey={(key) => setAmount((v) => pressKey(v, key))} />
           </div>
 
-          <Button
-            onClick={submit}
-            disabled={!canSave}
-            className={cn(
-              "mt-4 h-12 w-full rounded-2xl text-[15px] font-semibold text-white",
-              type === "INCOME" ? "bg-income hover:bg-income/90" : "bg-expense hover:bg-expense/90",
-            )}
-          >
-            {save.isPending ? "Сохраняем…" : "Сохранить"}
-          </Button>
+          <SaveButton type={type} onClick={submit} disabled={!canSave} pending={save.isPending} />
         </>
       )}
-    </div>
+    </FormShell>
   );
 }

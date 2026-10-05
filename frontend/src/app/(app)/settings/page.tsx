@@ -10,7 +10,7 @@ import { Panel, PanelTitle } from "@/components/panel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories, useDeleteCategory, useLogout, useMe, useSaveCategory } from "@/lib/queries";
-import type { Category, TransactionType } from "@/lib/types";
+import type { Category, CategoryType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
@@ -48,7 +48,7 @@ export default function SettingsPage() {
   );
 }
 
-function CategoryList({ type, onEdit }: { type: TransactionType; onEdit: (t: EditorTarget) => void }) {
+function CategoryList({ type, onEdit }: { type: CategoryType; onEdit: (t: EditorTarget) => void }) {
   const { data } = useCategories({ type, includeArchived: true });
   const active = data?.filter((c) => !c.archivedAt) ?? [];
   const archived = data?.filter((c) => c.archivedAt) ?? [];

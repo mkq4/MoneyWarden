@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -8,6 +9,10 @@ import {
   Max,
   MaxLength,
   Min,
+  Validate,
+  ValidatorConstraint,
+  type ValidationArguments,
+  type ValidatorConstraintInterface,
 } from 'class-validator';
 import { PeriodQueryDto } from '../../common/period-query.dto.js';
 import { DATE_RE } from '../../common/period.js';
@@ -22,10 +27,41 @@ const trimToNull = () =>
     typeof value === 'string' ? value.trim() || null : value,
   );
 
-/** Тип операции берётся из категории. */
+/** SAVING_ADJUSTMENT создаётся только через PUT /savings/balance. */
+export const CREATABLE_TYPES = ['INCOME', 'EXPENSE', 'SAVING'] as const;
+export type CreatableType = (typeof CREATABLE_TYPES)[number];
+
+/** У SAVING категории быть не должно, у INCOME/EXPENSE она обязательна. */
+@ValidatorConstraint({ name: 'categoryMatchesType' })
+class CategoryMatchesType implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const { type } = args.object as CreateTransactionDto;
+    if (type === 'SAVING') return value === undefined || value === null;
+    return Number.isInteger(value);
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    const { type } = args.object as CreateTransactionDto;
+    return type === 'SAVING'
+      ? 'У накоплений нет категории: categoryId передавать нельзя'
+      : 'categoryId обязателен';
+  }
+}
+
 export class CreateTransactionDto {
-  @IsInt()
-  categoryId: number;
+  /**
+   * Необязателен для доходов и расходов: тип берётся из категории
+   * (если передан — должен с ней совпадать).
+   */
+  @IsOptional()
+  @IsIn(CREATABLE_TYPES, {
+    message:
+      'type должен быть INCOME, EXPENSE или SAVING; корректировки накоплений — через PUT /savings/balance',
+  })
+  type?: CreatableType;
+
+  @Validate(CategoryMatchesType)
+  categoryId?: number | null;
 
   /** Сумма в копейках */
   @IsInt()

@@ -4,7 +4,7 @@ import { MonthPicker } from "@/components/month-picker";
 import { MobileMenu } from "@/components/mobile-menu";
 import { Panel, PanelTitle } from "@/components/panel";
 import { QuickActions } from "@/components/quick-actions";
-import { SummaryCards } from "@/components/summary-cards";
+import { MonthExtras, SummaryCards } from "@/components/summary-cards";
 import { TransactionRow } from "@/components/transaction-row";
 import {
   BreakdownSkeleton,
@@ -52,6 +52,7 @@ export function Dashboard() {
       </header>
 
       <SummaryCards month={month} />
+      <MonthExtras month={month} />
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-[1.55fr_1fr]">
         <Panel>

@@ -58,9 +58,15 @@ model RefreshToken {
   @@index([userId])
 }
 
+/// Категории бывают только INCOME/EXPENSE — проверяется в DTO категорий.
 enum TransactionType {
   INCOME
   EXPENSE
+  /// Отложено из текущего дохода, amount > 0
+  SAVING
+  /// Корректировка баланса накоплений (стартовый баланс, проценты, снятие), amount != 0.
+  /// Создаётся только через PUT /savings/balance.
+  SAVING_ADJUSTMENT
 }
 
 model Category {
@@ -86,10 +92,12 @@ model Transaction {
   userId     Int
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   type       TransactionType
-  /// Сумма в копейках, всегда > 0; направление задаёт type
+  /// Сумма в копейках; > 0 для всех типов, кроме SAVING_ADJUSTMENT (там != 0).
+  /// Инварианты продублированы CHECK-ограничениями в миграции *_savings.
   amount     Int
-  categoryId Int
-  category   Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  /// Есть у INCOME/EXPENSE, null у SAVING/SAVING_ADJUSTMENT
+  categoryId Int?
+  category   Category?       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   /// День операции без времени — группировки не зависят от часового пояса
   date       DateTime        @db.Date
   comment    String?

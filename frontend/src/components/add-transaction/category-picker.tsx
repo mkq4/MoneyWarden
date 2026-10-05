@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_COLORS } from "@/lib/category-icons";
 import { useSaveCategory } from "@/lib/queries";
-import type { Category, TransactionType } from "@/lib/types";
+import type { Category, CategoryType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function CategoryPicker({
@@ -18,7 +18,7 @@ export function CategoryPicker({
   selectedId,
   onSelect,
 }: {
-  type: TransactionType;
+  type: CategoryType;
   categories: Category[];
   selectedId: number | null;
   onSelect: (category: Category) => void;

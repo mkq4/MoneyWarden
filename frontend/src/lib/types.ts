@@ -1,4 +1,6 @@
-export type TransactionType = "INCOME" | "EXPENSE";
+export type TransactionType = "INCOME" | "EXPENSE" | "SAVING" | "SAVING_ADJUSTMENT";
+/** Типы, у которых есть категории */
+export type CategoryType = "INCOME" | "EXPENSE";
 
 export interface User {
   id: number;
@@ -11,7 +13,7 @@ export interface User {
 export interface Category {
   id: number;
   name: string;
-  type: TransactionType;
+  type: CategoryType;
   color: string | null;
   icon: string | null;
   archivedAt: string | null;
@@ -27,8 +29,9 @@ export interface Transaction {
   /** YYYY-MM-DD */
   date: string;
   comment: string | null;
-  categoryId: number;
-  category: CategoryRef;
+  /** null у SAVING и SAVING_ADJUSTMENT */
+  categoryId: number | null;
+  category: CategoryRef | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,14 +41,24 @@ export interface TransactionPage {
   total: number;
   page: number;
   limit: number;
-  sums: { income: number; expense: number };
+  sums: { income: number; expense: number; saved: number };
 }
 
 export interface Totals {
   income: number;
   expense: number;
+  /** income - expense */
   balance: number;
+  /** отложено в накопления за период */
+  saved: number;
+  /** свободный остаток: income - expense - saved */
+  free: number;
   count: number;
+}
+
+export interface Savings {
+  /** накоплено всего, копейки */
+  total: number;
 }
 
 export interface Summary extends Totals {
@@ -56,7 +69,7 @@ export interface Summary extends Totals {
 
 export interface CategoryStats {
   total: number;
-  type: TransactionType;
+  type: CategoryType;
   items: { category: CategoryRef; total: number; count: number; share: number }[];
 }
 
@@ -69,7 +82,7 @@ export interface MonthTotals {
 
 export interface DailyStats {
   month: string;
-  type: TransactionType;
+  type: CategoryType;
   total: number;
   avgPerDay: number;
   maxDay: { date: string; total: number } | null;

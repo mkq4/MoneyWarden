@@ -1,13 +1,17 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Matches, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, Matches, Max, Min } from 'class-validator';
 import { PeriodQueryDto } from '../../common/period-query.dto.js';
 import { MONTH_RE } from '../../common/period.js';
-import { TransactionType } from '../../generated/prisma/client.js';
+import {
+  CATEGORY_TYPE_MESSAGE,
+  CATEGORY_TYPES,
+  type CategoryType,
+} from '../../common/transaction-kinds.js';
 
 export class CategoryStatsQueryDto extends PeriodQueryDto {
   @IsOptional()
-  @IsEnum(TransactionType)
-  type: TransactionType = 'EXPENSE';
+  @IsIn(CATEGORY_TYPES, { message: CATEGORY_TYPE_MESSAGE })
+  type: CategoryType = 'EXPENSE';
 }
 
 export class MonthlyStatsQueryDto {
@@ -36,6 +40,6 @@ export class DailyStatsQueryDto {
   month?: string;
 
   @IsOptional()
-  @IsEnum(TransactionType)
-  type: TransactionType = 'EXPENSE';
+  @IsIn(CATEGORY_TYPES, { message: CATEGORY_TYPE_MESSAGE })
+  type: CategoryType = 'EXPENSE';
 }

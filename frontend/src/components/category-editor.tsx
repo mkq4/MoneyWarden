@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 import { IconPicker } from "@/components/icon-picker";
 import { CATEGORY_COLORS } from "@/lib/category-icons";
 import { useSaveCategory } from "@/lib/queries";
-import type { Category, TransactionType } from "@/lib/types";
+import type { Category, CategoryType } from "@/lib/types";
 
-export type EditorTarget = { category: Category } | { type: TransactionType } | null;
+export type EditorTarget = { category: Category } | { type: CategoryType } | null;
 
 export function CategoryEditor({ target, onClose }: { target: EditorTarget; onClose: () => void }) {
   return (

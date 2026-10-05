@@ -5,9 +5,24 @@ export function formatMoney(kopecks: number): string {
   return `${rub.format(Math.abs(kopecks) / 100)} ₽`;
 }
 
-/** Сумма со знаком для истории: «− 450 ₽» / «+ 85 000 ₽». */
-export function formatSigned(kopecks: number, type: "INCOME" | "EXPENSE"): string {
-  return `${type === "INCOME" ? "+" : "−"} ${formatMoney(kopecks)}`;
+/**
+ * Сумма для истории: «− 450 ₽», «+ 85 000 ₽». Отложенное — без знака
+ * (деньги не потрачены, а перенесены), корректировка — со знаком самой суммы.
+ */
+export function formatSigned(
+  kopecks: number,
+  type: "INCOME" | "EXPENSE" | "SAVING" | "SAVING_ADJUSTMENT",
+): string {
+  switch (type) {
+    case "INCOME":
+      return `+ ${formatMoney(kopecks)}`;
+    case "EXPENSE":
+      return `− ${formatMoney(kopecks)}`;
+    case "SAVING":
+      return formatMoney(kopecks);
+    case "SAVING_ADJUSTMENT":
+      return `${kopecks < 0 ? "−" : "+"} ${formatMoney(kopecks)}`;
+  }
 }
 
 const MONTHS = [

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CategoriesService } from '../categories/categories.service.js';
 import { formatDate, parseDate, resolvePeriod } from '../common/period.js';
 import type { Prisma } from '../generated/prisma/client.js';
@@ -64,7 +68,11 @@ export class TransactionsService {
       total,
       page: q.page,
       limit: q.limit,
-      sums: { income: sumOf('INCOME'), expense: sumOf('EXPENSE') },
+      sums: {
+        income: sumOf('INCOME'),
+        expense: sumOf('EXPENSE'),
+        saved: sumOf('SAVING'),
+      },
     };
   }
 
@@ -73,16 +81,29 @@ export class TransactionsService {
   }
 
   async create(userId: number, dto: CreateTransactionDto) {
-    const category = await this.categories.findUsable(userId, dto.categoryId);
+    const base = {
+      userId,
+      amount: dto.amount,
+      date: parseDate(dto.date),
+      comment: dto.comment ?? null,
+    };
+    if (dto.type === 'SAVING') {
+      const created = await this.prisma.transaction.create({
+        data: { ...base, type: 'SAVING', categoryId: null },
+        include,
+      });
+      return toResponse(created);
+    }
+
+    // DTO гарантирует, что для доходов/расходов categoryId передан.
+    const category = await this.categories.findUsable(userId, dto.categoryId!);
+    if (dto.type && dto.type !== category.type) {
+      throw new BadRequestException(
+        'Тип операции не совпадает с типом категории',
+      );
+    }
     const created = await this.prisma.transaction.create({
-      data: {
-        userId,
-        type: category.type,
-        categoryId: category.id,
-        amount: dto.amount,
-        date: parseDate(dto.date),
-        comment: dto.comment ?? null,
-      },
+      data: { ...base, type: category.type, categoryId: category.id },
       include,
     });
     return toResponse(created);
@@ -90,6 +111,15 @@ export class TransactionsService {
 
   async update(userId: number, id: number, dto: UpdateTransactionDto) {
     const existing = await this.findOwned(userId, id);
+    if (existing.type === 'SAVING_ADJUSTMENT') {
+      // Иначе PATCH стал бы обходом запрета создавать корректировки напрямую.
+      throw new BadRequestException(
+        'Корректировку накоплений нельзя изменить: удалите её или задайте баланс заново',
+      );
+    }
+    if (existing.type === 'SAVING' && dto.categoryId !== undefined) {
+      throw new BadRequestException('У накоплений нет категории');
+    }
     const data: Prisma.TransactionUncheckedUpdateInput = {
       amount: dto.amount,
       date: dto.date ? parseDate(dto.date) : undefined,

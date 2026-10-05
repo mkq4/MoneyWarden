@@ -1,8 +1,8 @@
-import { Minus, Plus } from "lucide-react";
+import { Minus, PiggyBank, Plus } from "lucide-react";
 import type { TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/** Круглый значок «−» (расход) / «+» (доход) как в макетах. */
+/** Круглый значок: «−» расход, «+» доход, копилка — накопления. */
 export function TypeBadge({
   type,
   className,
@@ -12,12 +12,17 @@ export function TypeBadge({
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
 }) {
-  const Icon = type === "INCOME" ? Plus : Minus;
+  const saving = type === "SAVING" || type === "SAVING_ADJUSTMENT";
+  const Icon = saving ? PiggyBank : type === "INCOME" ? Plus : Minus;
   return (
     <span
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-full",
-        type === "INCOME" ? "bg-income-soft text-income" : "bg-expense-soft text-expense",
+        saving
+          ? "bg-brand-soft text-brand"
+          : type === "INCOME"
+            ? "bg-income-soft text-income"
+            : "bg-expense-soft text-expense",
         size === "sm" && "size-8 [&_svg]:size-4",
         size === "md" && "size-10 [&_svg]:size-5",
         size === "lg" && "size-12 [&_svg]:size-6",
@@ -25,7 +30,7 @@ export function TypeBadge({
         className,
       )}
     >
-      <Icon strokeWidth={2.75} />
+      <Icon strokeWidth={saving ? 2 : 2.75} />
     </span>
   );
 }

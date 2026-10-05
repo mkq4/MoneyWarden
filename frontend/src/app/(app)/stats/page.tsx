@@ -6,6 +6,7 @@ import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, XAxis, YAxis } from 
 import { CategoryBars, Donut, EmptyBreakdown, BreakdownSkeleton, toRows } from "@/components/category-breakdown";
 import { MoneyTooltip, axisMoney } from "@/components/chart-tooltip";
 import { MonthPicker } from "@/components/month-picker";
+import { SavingsPanel } from "@/components/savings-panel";
 import { PageHeader } from "@/components/page-header";
 import { Panel, PanelTitle } from "@/components/panel";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
@@ -20,7 +21,7 @@ import {
   pluralize,
 } from "@/lib/format";
 import { useCategoryStats, useDaily, useMonthly, useSummary } from "@/lib/queries";
-import type { TransactionType } from "@/lib/types";
+import type { CategoryType } from "@/lib/types";
 import { useMonth } from "@/lib/use-month";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +52,7 @@ export default function StatsPage() {
 
       <div className="flex flex-col gap-4 md:gap-6">
         <SummaryTiles month={month} />
+        <SavingsPanel month={month} />
         <CategoriesPanel month={month} />
         <MonthlyPanel month={month} />
         <DailyPanel month={month} />
@@ -63,16 +65,18 @@ function SummaryTiles({ month }: { month: string }) {
   const { data: s } = useSummary(month);
   const { data: daily } = useDaily(month, "EXPENSE");
   return (
-    <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5">
       <Tile label="Расходы" value={s?.expense} change={s?.change.expensePct} goodWhenUp={false} />
       <Tile label="Доходы" value={s?.income} change={s?.change.incomePct} goodWhenUp valueClassName="text-income" />
+      <Tile label="Отложено" value={s?.saved} valueClassName="text-brand" hint="в накопления" />
       <Tile
-        label="Остаток"
-        value={s?.balance}
+        label="Свободный остаток"
+        value={s?.free}
         signed
         hint={s ? `${s.count} ${pluralize(s.count, ["операция", "операции", "операций"])}` : undefined}
       />
       <Tile
+        className="col-span-2 lg:col-span-1"
         label="В среднем в день"
         value={daily?.avgPerDay}
         hint={daily?.maxDay ? `макс. ${formatMoney(daily.maxDay.total)} · ${formatDay(daily.maxDay.date).toLowerCase()}` : undefined}
@@ -89,7 +93,9 @@ function Tile({
   hint,
   signed,
   valueClassName,
+  className,
 }: {
+  className?: string;
   label: string;
   value: number | undefined;
   change?: number | null;
@@ -99,7 +105,7 @@ function Tile({
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border/80 bg-surface p-4 md:p-5">
+    <div className={cn("min-w-0 rounded-2xl border border-border/80 bg-surface p-4 md:p-5", className)}>
       <div className="text-[13px] text-muted-foreground">{label}</div>
       {value === undefined ? (
         <Skeleton className="mt-2 h-7 w-24" />
@@ -122,10 +128,11 @@ function Tile({
               "inline-flex items-center gap-0.5 font-medium",
               (change > 0) === goodWhenUp ? "text-income" : "text-expense",
             )}
+            title="по сравнению с прошлым месяцем"
           >
             {change > 0 ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />}
             {Math.abs(change).toLocaleString("ru-RU")}%
-            <span className="ml-1 font-normal text-muted-foreground">к прошлому месяцу</span>
+            <span className="ml-1 font-normal whitespace-nowrap text-muted-foreground lg:hidden">к прошлому месяцу</span>
           </span>
         ) : (
           hint && <span className="text-muted-foreground">{hint}</span>
@@ -135,7 +142,7 @@ function Tile({
   );
 }
 
-function TypeSwitch({ value, onChange }: { value: TransactionType; onChange: (t: TransactionType) => void }) {
+function TypeSwitch({ value, onChange }: { value: CategoryType; onChange: (t: CategoryType) => void }) {
   return (
     <div className="grid h-9 grid-cols-2 rounded-xl bg-muted p-1 text-[13px]">
       {(["EXPENSE", "INCOME"] as const).map((t) => (
@@ -156,7 +163,7 @@ function TypeSwitch({ value, onChange }: { value: TransactionType; onChange: (t:
 }
 
 function CategoriesPanel({ month }: { month: string }) {
-  const [type, setType] = useState<TransactionType>("EXPENSE");
+  const [type, setType] = useState<CategoryType>("EXPENSE");
   const { data } = useCategoryStats(month, type);
   const rows = data ? toRows(data) : [];
   return (
@@ -238,7 +245,7 @@ function Legend() {
 }
 
 function DailyPanel({ month }: { month: string }) {
-  const [type, setType] = useState<TransactionType>("EXPENSE");
+  const [type, setType] = useState<CategoryType>("EXPENSE");
   const { data } = useDaily(month, type);
   const color = type === "EXPENSE" ? SERIES.expense : SERIES.income;
 

@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
-  IsEnum,
+  IsIn,
   IsOptional,
   IsString,
   Matches,
@@ -9,7 +9,11 @@ import {
   MinLength,
 } from 'class-validator';
 import { ToBoolean } from '../../common/transforms.js';
-import { TransactionType } from '../../generated/prisma/client.js';
+import {
+  CATEGORY_TYPE_MESSAGE,
+  CATEGORY_TYPES,
+  type CategoryType,
+} from '../../common/transaction-kinds.js';
 
 const trim = () =>
   Transform(({ value }) => (typeof value === 'string' ? value.trim() : value));
@@ -23,8 +27,8 @@ export class CreateCategoryDto {
   @MaxLength(50)
   name: string;
 
-  @IsEnum(TransactionType)
-  type: TransactionType;
+  @IsIn(CATEGORY_TYPES, { message: CATEGORY_TYPE_MESSAGE })
+  type: CategoryType;
 
   @IsOptional()
   @Matches(HEX_COLOR, { message: 'color должен быть в формате #RRGGBB' })
@@ -62,8 +66,8 @@ export class UpdateCategoryDto {
 
 export class ListCategoriesQueryDto {
   @IsOptional()
-  @IsEnum(TransactionType)
-  type?: TransactionType;
+  @IsIn(CATEGORY_TYPES, { message: CATEGORY_TYPE_MESSAGE })
+  type?: CategoryType;
 
   @IsOptional()
   @ToBoolean()

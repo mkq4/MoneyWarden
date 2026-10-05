@@ -11,8 +11,10 @@ import { api, qs } from "./api";
 import type {
   Category,
   CategoryStats,
+  CategoryType,
   DailyStats,
   MonthTotals,
+  Savings,
   Summary,
   Transaction,
   TransactionPage,
@@ -23,7 +25,7 @@ import type {
 export const useMe = () =>
   useQuery({ queryKey: ["me"], queryFn: () => api<User>("/auth/me"), staleTime: Infinity });
 
-export const useCategories = (opts: { type?: TransactionType; includeArchived?: boolean } = {}) =>
+export const useCategories = (opts: { type?: CategoryType; includeArchived?: boolean } = {}) =>
   useQuery({
     queryKey: ["categories", opts],
     queryFn: () =>
@@ -39,7 +41,7 @@ export const useSummary = (month: string) =>
     placeholderData: keepPreviousData,
   });
 
-export const useCategoryStats = (month: string, type: TransactionType = "EXPENSE") =>
+export const useCategoryStats = (month: string, type: CategoryType = "EXPENSE") =>
   useQuery({
     queryKey: ["stats", "categories", month, type],
     queryFn: () => api<CategoryStats>(`/stats/categories${qs({ month, type })}`),
@@ -53,7 +55,7 @@ export const useMonthly = (until: string, months = 12) =>
     placeholderData: keepPreviousData,
   });
 
-export const useDaily = (month: string, type: TransactionType = "EXPENSE") =>
+export const useDaily = (month: string, type: CategoryType = "EXPENSE") =>
   useQuery({
     queryKey: ["stats", "daily", month, type],
     queryFn: () => api<DailyStats>(`/stats/daily${qs({ month, type })}`),
@@ -87,6 +89,9 @@ export const useTransactions = (filters: TransactionFilters, limit = 30) =>
     placeholderData: keepPreviousData,
   });
 
+export const useSavings = () =>
+  useQuery({ queryKey: ["savings"], queryFn: () => api<Savings>("/savings") });
+
 /** Всё, что зависит от операций, — пересчитать. */
 function useInvalidateMoney() {
   const client = useQueryClient();
@@ -94,11 +99,26 @@ function useInvalidateMoney() {
     Promise.all([
       client.invalidateQueries({ queryKey: ["transactions"] }),
       client.invalidateQueries({ queryKey: ["stats"] }),
+      client.invalidateQueries({ queryKey: ["savings"] }),
     ]);
 }
 
+export function useSetSavingsBalance() {
+  const invalidate = useInvalidateMoney();
+  return useMutation({
+    mutationFn: (targetAmount: number) =>
+      api<{ total: number; adjustment: { id: number; amount: number } | null }>("/savings/balance", {
+        method: "PUT",
+        body: { targetAmount },
+      }),
+    onSuccess: invalidate,
+  });
+}
+
 export interface TransactionInput {
-  categoryId: number;
+  /** Только для создания накопления; доход/расход определяется категорией */
+  type?: "SAVING";
+  categoryId?: number;
   amount: number;
   date: string;
   comment?: string | null;
@@ -125,7 +145,7 @@ export function useDeleteTransaction() {
 
 export interface CategoryInput {
   name?: string;
-  type?: TransactionType;
+  type?: CategoryType;
   color?: string;
   icon?: string;
   archived?: boolean;

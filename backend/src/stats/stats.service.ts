@@ -17,6 +17,7 @@ import type {
   MonthlyStatsQueryDto,
 } from './dto/stats-query.dto.js';
 import { fillDays, fillMonths, percentChange } from './fill.js';
+import { monthTotals } from './month-totals.js';
 
 const formatPeriod = ({ from, to }: Period) => ({
   from: formatDate(from),
@@ -27,7 +28,10 @@ const formatPeriod = ({ from, to }: Period) => ({
 export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Доходы, расходы, баланс за период + сравнение с предыдущим. */
+  /**
+   * Доходы, расходы, отложено и свободный остаток за период
+   * + сравнение с предыдущим периодом.
+   */
   async summary(userId: number, period: Period) {
     const prev = previousPeriod(period);
     const [current, previous] = await Promise.all([
@@ -58,7 +62,10 @@ export class StatsService {
       _count: true,
     });
     const categories = await this.prisma.category.findMany({
-      where: { id: { in: groups.map((g) => g.categoryId) } },
+      // У доходов/расходов категория всегда есть (CHECK в БД), null отсекаем для типов.
+      where: {
+        id: { in: groups.flatMap((g) => (g.categoryId ? [g.categoryId] : [])) },
+      },
       select: {
         id: true,
         name: true,
@@ -160,10 +167,12 @@ export class StatsService {
       _sum: { amount: true },
       _count: true,
     });
-    const pick = (type: TransactionType) => groups.find((g) => g.type === type);
-    const income = pick('INCOME')?._sum.amount ?? 0;
-    const expense = pick('EXPENSE')?._sum.amount ?? 0;
-    const count = groups.reduce((acc, g) => acc + g._count, 0);
-    return { income, expense, balance: income - expense, count };
+    return monthTotals(
+      groups.map((g) => ({
+        type: g.type,
+        sum: g._sum.amount ?? 0,
+        count: g._count,
+      })),
+    );
   }
 }

@@ -179,6 +179,18 @@ VK отдаёт email не всегда, поэтому `User.email` может 
 | POST | `/api/transactions` | `{ categoryId, amount, date, comment? }` |
 | GET / PATCH / DELETE | `/api/transactions/:id` | PATCH принимает любые поля из POST; смена категории может сменить тип |
 
+### Накопления
+
+`SAVING` — «отложил из дохода» (`POST /api/transactions` с `{ type: "SAVING", amount, date }`, без категории).
+`SAVING_ADJUSTMENT` — корректировка баланса (стартовый остаток, проценты, снятие); создаётся только через `PUT /api/savings/balance`, изменить нельзя, удалить можно.
+
+| Метод | Путь | Описание |
+| ----- | ---- | -------- |
+| GET | `/api/savings` | `{ total }` — сумма SAVING + SAVING_ADJUSTMENT за всё время (не хранится, считается) |
+| PUT | `/api/savings/balance` | `{ targetAmount ≥ 0 }` → корректировка на разницу (если она не 0). Запросы одного пользователя сериализуются блокировкой строки `User` |
+
+В `GET /api/stats/summary` есть `saved` (SAVING за период) и `free = income − expense − saved`; корректировки в статистику месяца не входят.
+
 ### Статистика
 
 | Метод | Путь | Описание |
