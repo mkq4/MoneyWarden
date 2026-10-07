@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { Providers } from "./_providers";
-import "./_styles/globals.scss";
+import { Providers } from "@/app";
+import "@/app/styles/globals.scss";
 
 const inter = Inter({
   variable: "--font-sans",

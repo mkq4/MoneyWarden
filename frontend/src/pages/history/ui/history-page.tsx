@@ -19,7 +19,7 @@ import { TypeSegmented } from "./type-segmented";
 
 export function HistoryPage() {
   const params = useSearchParams();
-  const initialType = params.get("type");
+  const initialType = params?.get("type");
   const [month] = useMonth();
   const [type, setType] = useState<TypeFilter>(isCategoryType(initialType) ? initialType : "ALL");
   const [categoryIds, setCategoryIds] = useState<number[]>([]);

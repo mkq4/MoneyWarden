@@ -10,13 +10,14 @@ const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 export function useMonth(): [string, (month: string) => void] {
   const params = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
-  const raw = params.get("m");
+  // null бывает только в Pages Router; в App Router значения есть всегда.
+  const pathname = usePathname() ?? "/";
+  const raw = params?.get("m") ?? null;
   const month = raw && MONTH_RE.test(raw) ? raw : currentMonth();
 
   const setMonth = useCallback(
     (next: string) => {
-      const search = new URLSearchParams(params.toString());
+      const search = new URLSearchParams(params?.toString());
       if (next === currentMonth()) search.delete("m");
       else search.set("m", next);
       const str = search.toString();
@@ -31,7 +32,7 @@ export function useMonth(): [string, (month: string) => void] {
 /** Ссылка на другую страницу с сохранением выбранного месяца (+ доп. параметры). */
 export function useHrefWithMonth() {
   const params = useSearchParams();
-  const m = params.get("m");
+  const m = params?.get("m");
   return (path: string, extra: Record<string, string> = {}) => {
     const search = new URLSearchParams(extra);
     if (m) search.set("m", m);

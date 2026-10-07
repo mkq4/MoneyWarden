@@ -117,18 +117,21 @@ npx shadcn@latest add card input dialog
 ## Фронтенд
 
 - Экраны: `/login` (вход/регистрация), `/` (на телефоне — быстрые действия, на десктопе — дашборд), `/home`, `/history`, `/stats`, `/settings`.
-- `frontend/src/proxy.ts` проксирует `/api/*` на бэкенд (`API_URL`, в рантайме), поэтому куки авторизации first-party и CORS не нужен.
+- `frontend/proxy.ts` проксирует `/api/*` на бэкенд (`API_URL`, в рантайме), поэтому куки авторизации first-party и CORS не нужен.
   Он же не пускает на страницы без куки `session` (маркер сессии, ставит бэкенд).
 - Данные грузятся на клиенте через TanStack Query (хуки в `entities/*/api/queries.ts`); на 401 `shared/api/http.ts` один раз вызывает refresh.
 - Выбранный месяц хранится в `?m=YYYY-MM` и общий для всех страниц.
-- Стили — SCSS (`src/app/_styles/globals.scss`). Пакеты Tailwind подключаются через `@import url(...)`, чтобы Sass не инлайнил их, а обработал Tailwind.
+- Стили — SCSS (`src/app/styles/globals.scss`). Пакеты Tailwind подключаются через `@import url(...)`, чтобы Sass не инлайнил их, а обработал Tailwind.
 
 ### Структура (Feature-Sliced Design)
 
 ```
+app/            # роутинг Next (layout, page.tsx — только реэкспорт страницы из src/pages)
+pages/          # пустая (README): иначе Next собрал бы роуты из src/pages — не удалять
+proxy.ts
 src/
-├── app/        # роутинг Next + слой app: _providers, _styles; page.tsx только реэкспортирует страницу из views
-├── views/      # слой pages (имя `pages` занято Pages Router Next)
+├── app/        # слой app: providers, styles
+├── pages/      # UI страниц
 ├── widgets/    # app-shell, header, dashboard, savings-panel
 ├── features/   # auth, month-select, category-editor, transaction-editor
 ├── entities/   # user, category, transaction, savings, stats

@@ -6,7 +6,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["app/**/*.{ts,tsx}", "src/**/*.{ts,tsx}", "proxy.ts"],
     rules: {
       // Приведения типов запрещены: только type guard'ы или явная типизация.
       "@typescript-eslint/no-explicit-any": "error",
@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              regex: "^@/(entities|features|widgets|views)/[^/]+/(?!@x/).+",
+              regex: "^@/(entities|features|widgets|pages)/[^/]+/(?!@x/).+",
               message: "Импортируйте слайс через его public API: @/<layer>/<slice>.",
             },
             {
@@ -33,7 +33,11 @@ const eslintConfig = defineConfig([
               message: "Импортируйте сегмент shared через его index: @/shared/<segment>/<name>.",
             },
             {
-              regex: "^@/(app|components|lib)(/|$)",
+              regex: "^@/app/(?!styles/globals\\.scss$).+",
+              message: "Импортируйте слой app через его index: @/app.",
+            },
+            {
+              regex: "^@/(components|lib|views)(/|$)",
               message: "Старые пути: используйте слои FSD.",
             },
           ],

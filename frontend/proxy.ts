@@ -19,6 +19,7 @@ export function proxy(request: NextRequest) {
   if (!hasSession && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
+
   if (hasSession && isPublic) {
     return NextResponse.redirect(new URL("/", request.url));
   }

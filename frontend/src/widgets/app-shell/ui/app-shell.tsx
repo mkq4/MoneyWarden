@@ -50,7 +50,7 @@ function SidebarLogo() {
 function NavLink({ item }: { item: NavItem }) {
   const pathname = usePathname();
   const withMonth = useHrefWithMonth();
-  const active = item.match.includes(pathname);
+  const active = pathname !== null && item.match.includes(pathname);
   const Icon = item.icon;
   return (
     <Link
