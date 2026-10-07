@@ -101,7 +101,7 @@ cd frontend
 npx shadcn@latest add card input dialog
 ```
 
-Компоненты появятся в `frontend/src/components/ui`.
+Компоненты появятся в `frontend/src/shared/ui`. shadcn кладёт их плоско — перенесите в `shared/ui/<name>/<name>.tsx` и добавьте `index.ts` с конкретными экспортами.
 
 ## Переменные окружения
 
@@ -119,8 +119,29 @@ npx shadcn@latest add card input dialog
 - Экраны: `/login` (вход/регистрация), `/` (на телефоне — быстрые действия, на десктопе — дашборд), `/home`, `/history`, `/stats`, `/settings`.
 - `frontend/src/proxy.ts` проксирует `/api/*` на бэкенд (`API_URL`, в рантайме), поэтому куки авторизации first-party и CORS не нужен.
   Он же не пускает на страницы без куки `session` (маркер сессии, ставит бэкенд).
-- Данные грузятся на клиенте через TanStack Query (`src/lib/queries.ts`); на 401 `src/lib/api.ts` один раз вызывает refresh.
+- Данные грузятся на клиенте через TanStack Query (хуки в `entities/*/api/queries.ts`); на 401 `shared/api/http.ts` один раз вызывает refresh.
 - Выбранный месяц хранится в `?m=YYYY-MM` и общий для всех страниц.
+- Стили — SCSS (`src/app/_styles/globals.scss`). Пакеты Tailwind подключаются через `@import url(...)`, чтобы Sass не инлайнил их, а обработал Tailwind.
+
+### Структура (Feature-Sliced Design)
+
+```
+src/
+├── app/        # роутинг Next + слой app: _providers, _styles; page.tsx только реэкспортирует страницу из views
+├── views/      # слой pages (имя `pages` занято Pages Router Next)
+├── widgets/    # app-shell, header, dashboard, savings-panel
+├── features/   # auth, month-select, category-editor, transaction-editor
+├── entities/   # user, category, transaction, savings, stats
+└── shared/     # api (http-клиент, query keys), lib (format, guards, cn, month-param), ui, config
+```
+
+Правила (проверяются `npm run lint`):
+
+- Импорт слайса — только через его `index.ts`: `@/entities/stats`, а не `@/entities/stats/lib/to-rows`.
+  Связи между сущностями — через `@x`: `@/entities/category/@x/transaction`.
+- В `index.ts` — только конкретные экспорты, без `export * from`.
+- Запросы описаны в `api/<name>.service.ts`, типы запросов/ответов и интерфейс сервиса — отдельно в `api/<name>.service.interface.ts`.
+- Ответ API проверяется type guard'ом (`shared/lib/guards`), приведения `as`, `!` и `any` запрещены.
 
 ## Авторизация
 
