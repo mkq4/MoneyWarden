@@ -1,11 +1,30 @@
 Правки
-1. Вместо css должно быть scss
-2. Frontend сторого на FSD. Переделать всё на FSD
-3. Должныть быть barrel импорты, строго без export * from './...' только конкретные экспорты
-Соответсвенно испорты должны быть напрмер из import { someFunc } from './entities/summary'
-А не import { someFunc } from './entities/summary/lib/helpers'
+В любом слое структура компонента должны быть такой
+например виджет dashboard
+widget/dashboard/ui/Dashboard.tsx // сама ui dashboard единственная и не повторимая
+widget/dashboard/ui/Dashboard.module.scss // файл стилей, если нужен
+widget/dashboard/ui/index.ts // barrel импорт
 
-Всё должно быть аккуратно
+// Если можно выделить компоненты котоыре будут использоваться в Dashboard
+widget/dashboard/components // папка с компонентами которые используются в Dashboard.tsx
+widget/dashboard/components/index.ts // barrel импорты компонентов
+widget/dashboard/components/SummaryCards.tsx // компонент
+widget/dashboard/components/RecentTransactions.tsx // компонент
+... // сколь угодно компонентов
 
-4. Типозировать все запросы и ответы на них, service.interface.ts должен хранится отдельно
-5. Минимизировать, желательно уничтожить всё использования типов с 'as', всё должно быть через typeGuard или типизировано иначе, тем более без any
+widget/dashboard/index.ts // barrel import
+
+Важно придерживаться fsd
+если надо, можно добавить lib, config, model и вообще что можно из fsd
+
+Также почему то заметил, что у тебя файл который 100% можно отнести к константным файлам, называется конфиг
+mkq4/MoneyWarden/frontend/src/widgets/app-shell/config/nav.ts
+возможно стоит сделать 
+widgets/app-shell/model/app-shell.const.ts
+и вынести всё туда
+
+Ещё заметил
+Следует избегать такого что в файле компонента написан не только сам компонент, но ещё 1,2,3,4,5... компонентов. ДАЖЕ если они не экспортируются и используются только внутри этого же компонента, стоит вынести их в папку ./components 
+
+ВАЖНО! Всё это применяется не только к тем компонентам на которые я тебе указал, но и вообще посмотреть за таким состоянием по всему проекту
+
