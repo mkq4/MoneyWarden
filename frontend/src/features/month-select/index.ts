@@ -1,1 +1,1 @@
-export { MonthPicker } from "./ui/month-picker";
+export { MonthPicker } from "./ui";

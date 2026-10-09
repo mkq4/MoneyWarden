@@ -29,5 +29,4 @@ export type {
   TransactionSums,
   TransactionType,
 } from "./model/types";
-export { TransactionRow } from "./ui/transaction-row";
-export { TypeBadge } from "./ui/type-badge";
+export { TransactionRow, TypeBadge } from "./ui";

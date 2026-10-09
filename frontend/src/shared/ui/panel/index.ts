@@ -1,1 +1,1 @@
-export { Panel, PanelTitle } from "./panel";
+export { Panel, PanelTitle } from "./ui";

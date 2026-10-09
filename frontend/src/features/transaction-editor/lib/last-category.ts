@@ -1,6 +1,5 @@
 import type { CategoryType } from "@/entities/category";
-
-const LAST_CATEGORY_KEY = "mw:last-category:";
+import { LAST_CATEGORY_KEY } from "../model/transaction-editor.const";
 
 /** Последняя выбранная категория типа — подставляется в новую операцию. */
 export function readLastCategory(type: CategoryType): number | null {

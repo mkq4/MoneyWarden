@@ -1,5 +1,6 @@
-/** Ввод суммы строкой: "1234", "1234,5". Максимум 10 млн ₽ (лимит бэкенда). */
-const MAX_INT_DIGITS = 8;
+import { MAX_AMOUNT_INT_DIGITS } from "../model/transaction-editor.const";
+
+/** Ввод суммы строкой: "1234", "1234,5". */
 
 export function pressKey(value: string, key: string): string {
   if (key === "backspace") return value.slice(0, -1);
@@ -11,7 +12,7 @@ export function pressKey(value: string, key: string): string {
   const [int, frac] = value.split(",");
   if (frac !== undefined) return frac.length >= 2 ? value : value + key;
   if (int === "0" || int === "") return key === "0" && int === "" ? "0" : key;
-  return int.length >= MAX_INT_DIGITS ? value : value + key;
+  return int.length >= MAX_AMOUNT_INT_DIGITS ? value : value + key;
 }
 
 export function toKopecks(value: string): number {

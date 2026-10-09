@@ -1,7 +1,5 @@
+import { OTHER_COLOR } from "../model/stats.const";
 import type { BreakdownRow, CategoryStats } from "../model/types";
-
-/** Цвет сводной строки «Остальное» и категорий без цвета */
-export const OTHER_COLOR = "#94a3b8";
 
 /** Топ-N категорий, остальное сворачивается в «Остальное» (как в макете). */
 export function toBreakdownRows(stats: CategoryStats, limit?: number): BreakdownRow[] {

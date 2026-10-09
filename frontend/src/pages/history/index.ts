@@ -1,1 +1,1 @@
-export { HistoryPage } from "./ui/history-page";
+export { HistoryPage } from "./ui";

@@ -5,5 +5,5 @@ export {
   ChartStyle,
   ChartTooltip,
   ChartTooltipContent,
-} from "./chart";
-export type { ChartConfig } from "./chart";
+} from "./ui";
+export type { ChartConfig } from "./ui";

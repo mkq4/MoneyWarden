@@ -11,9 +11,14 @@ export type {
   UpdateCategoryRequest,
   UpdateCategoryResponse,
 } from "./api/category.service.interface";
-export { CATEGORY_COLORS, FALLBACK_CATEGORY_COLOR } from "./config/colors";
-export { CATEGORY_ICON_NAMES, CATEGORY_ICONS, DEFAULT_CATEGORY_ICON, getCategoryIcon } from "./config/icons";
+export { getCategoryIcon } from "./lib/get-category-icon";
+export {
+  CATEGORY_COLORS,
+  CATEGORY_ICON_NAMES,
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_ICON,
+  FALLBACK_CATEGORY_COLOR,
+} from "./model/category.const";
 export { isCategory, isCategoryRef, isCategoryType } from "./model/guards";
 export type { Category, CategoryRef, CategoryType } from "./model/types";
-export { CategoryIcon } from "./ui/category-icon";
-export { IconPicker } from "./ui/icon-picker";
+export { CategoryIcon, IconPicker } from "./ui";

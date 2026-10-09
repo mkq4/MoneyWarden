@@ -1,1 +1,1 @@
-export { MoneyTooltip } from "./money-tooltip";
+export { MoneyTooltip } from "./ui";

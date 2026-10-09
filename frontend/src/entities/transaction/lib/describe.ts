@@ -1,9 +1,5 @@
-import type { SavingTransactionType, Transaction } from "../model/types";
-
-const SAVING_LABELS: Record<SavingTransactionType, string> = {
-  SAVING: "Отложено",
-  SAVING_ADJUSTMENT: "Корректировка накоплений",
-};
+import { SAVING_LABELS } from "../model/transaction.const";
+import type { Transaction } from "../model/types";
 
 /**
  * Заголовок — комментарий (если есть) или категория/название типа;

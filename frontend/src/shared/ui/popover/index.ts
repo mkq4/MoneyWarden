@@ -5,4 +5,4 @@ export {
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
-} from "./popover";
+} from "./ui";

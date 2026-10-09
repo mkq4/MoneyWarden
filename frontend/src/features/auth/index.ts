@@ -8,4 +8,4 @@ export type {
   RegisterResponse,
 } from "./api/auth.service.interface";
 export { useLogout } from "./model/use-logout";
-export { LoginForm } from "./ui/login-form";
+export { LoginForm } from "./ui";

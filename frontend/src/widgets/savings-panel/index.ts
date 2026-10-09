@@ -1,1 +1,1 @@
-export { SavingsPanel } from "./ui/savings-panel";
+export { SavingsPanel } from "./ui";

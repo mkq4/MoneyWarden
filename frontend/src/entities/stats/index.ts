@@ -24,7 +24,4 @@ export type {
   Summary,
   Totals,
 } from "./model/types";
-export { BreakdownSkeleton } from "./ui/breakdown-skeleton";
-export { CategoryBars } from "./ui/category-bars";
-export { Donut } from "./ui/donut";
-export { EmptyBreakdown } from "./ui/empty-breakdown";
+export { BreakdownSkeleton, CategoryBars, Donut, EmptyBreakdown } from "./ui";

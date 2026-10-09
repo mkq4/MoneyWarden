@@ -1,2 +1,1 @@
-export { MobileMenu } from "./ui/mobile-menu";
-export { PageHeader } from "./ui/page-header";
+export { MobileMenu, PageHeader } from "./ui";
