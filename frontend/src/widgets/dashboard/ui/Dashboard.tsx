@@ -11,9 +11,10 @@ import { ExpenseBreakdown, MonthExtras, RecentTransactions, SummaryCards } from 
 
 /**
  * Главная: итоги месяца, расходы по категориям, последние операции.
- * menu — меню телефона в шапке (слот, чтобы виджет не зависел от других виджетов).
+ * menu — меню телефона в шапке, notices — уведомления над итогами
+ * (слоты, чтобы виджет не зависел от других виджетов).
  */
-export function Dashboard({ menu }: { menu?: React.ReactNode }) {
+export function Dashboard({ menu, notices }: { menu?: React.ReactNode; notices?: React.ReactNode }) {
   const [month] = useMonth();
   const withMonth = useHrefWithMonth();
   const { data: me } = useMe();
@@ -46,6 +47,7 @@ export function Dashboard({ menu }: { menu?: React.ReactNode }) {
         {menu}
       </header>
 
+      {notices}
       <SummaryCards month={month} />
       <MonthExtras month={month} />
 

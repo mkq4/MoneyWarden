@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartNoAxesColumn, EllipsisVertical, History, House, LogOut, Settings } from "lucide-react";
+import { ChartNoAxesColumn, EllipsisVertical, History, Hourglass, House, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLogout } from "@/features/auth";
 import { ROUTES } from "@/shared/config";
@@ -35,6 +35,9 @@ export function MobileMenu() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push(withMonth(ROUTES.stats))}>
           <ChartNoAxesColumn /> Статистика
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(ROUTES.reminders)}>
+          <Hourglass /> Подумать
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push(ROUTES.settings)}>
           <Settings /> Настройки

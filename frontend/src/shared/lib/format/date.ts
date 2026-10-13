@@ -38,6 +38,20 @@ export function toISODate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/** '2025-04-12' + 3 → '2025-04-15'. Календарно, без «плюс 24 часа» (переход на летнее время). */
+export function addDays(date: string, days: number): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return toISODate(new Date(y, m - 1, d + days));
+}
+
+/** Сколько дней от сегодня до date: 0 — сегодня, < 0 — уже прошло. */
+export function daysUntil(date: string): number {
+  const [y, m, d] = date.split("-").map(Number);
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((Date.UTC(y, m - 1, d) - today) / 86_400_000);
+}
+
 export const currentMonth = (): string => toISODate(new Date()).slice(0, 7);
 
 export function shiftMonth(month: string, delta: number): string {

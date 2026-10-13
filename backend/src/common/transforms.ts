@@ -15,3 +15,7 @@ export const ToBoolean = () =>
   Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   );
+
+/** Обрезает пробелы по краям строки */
+export const Trim = () =>
+  Transform(({ value }) => (typeof value === 'string' ? value.trim() : value));

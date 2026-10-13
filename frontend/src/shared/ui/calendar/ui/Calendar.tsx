@@ -15,16 +15,20 @@ import { WEEKDAYS } from "../model/calendar.const";
 export function Calendar({
   value,
   onChange,
+  min,
   max,
 }: {
   value: string;
   onChange: (date: string) => void;
+  /** первая доступная дата, включительно */
+  min?: string;
   /** последняя доступная дата, включительно */
   max?: string;
 }) {
   const [month, setMonth] = useState(value.slice(0, 7));
   const today = toISODate(new Date());
   const days = monthGrid(month);
+  const canGoPrev = !min || shiftMonth(month, -1) >= min.slice(0, 7);
   const canGoNext = !max || shiftMonth(month, 1) <= max.slice(0, 7);
 
   return (
@@ -32,7 +36,7 @@ export function Calendar({
       <div className="mb-2 flex items-center justify-between px-1">
         <span className="text-[15px] font-semibold tracking-tight">{formatMonth(month)}</span>
         <div className="flex gap-1">
-          <CalendarNavButton label="Предыдущий месяц" onClick={() => setMonth(shiftMonth(month, -1))}>
+          <CalendarNavButton label="Предыдущий месяц" onClick={() => setMonth(shiftMonth(month, -1))} disabled={!canGoPrev}>
             <ChevronLeft />
           </CalendarNavButton>
           <CalendarNavButton label="Следующий месяц" onClick={() => setMonth(shiftMonth(month, 1))} disabled={!canGoNext}>
@@ -53,7 +57,7 @@ export function Calendar({
         {days.map((day) => {
           const outside = day.slice(0, 7) !== month;
           const selected = day === value;
-          const disabled = !!max && day > max;
+          const disabled = (!!min && day < min) || (!!max && day > max);
           const isToday = day === today;
           return (
             <button

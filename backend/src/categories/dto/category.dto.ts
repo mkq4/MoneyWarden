@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsIn,
@@ -8,20 +7,17 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ToBoolean } from '../../common/transforms.js';
+import { ToBoolean, Trim } from '../../common/transforms.js';
 import {
   CATEGORY_TYPE_MESSAGE,
   CATEGORY_TYPES,
   type CategoryType,
 } from '../../common/transaction-kinds.js';
 
-const trim = () =>
-  Transform(({ value }) => (typeof value === 'string' ? value.trim() : value));
-
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 export class CreateCategoryDto {
-  @trim()
+  @Trim()
   @IsString()
   @MinLength(1)
   @MaxLength(50)
@@ -43,7 +39,7 @@ export class CreateCategoryDto {
 /** Тип менять нельзя: у категории уже могут быть операции этого типа. */
 export class UpdateCategoryDto {
   @IsOptional()
-  @trim()
+  @Trim()
   @IsString()
   @MinLength(1)
   @MaxLength(50)

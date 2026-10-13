@@ -8,4 +8,5 @@ export const QUERY_KEYS = {
   transactions: ["transactions"],
   stats: ["stats"],
   savings: ["savings"],
+  reminders: ["reminders"],
 } satisfies Record<string, readonly string[]>;

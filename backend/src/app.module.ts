@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { RemindersModule } from './reminders/reminders.module.js';
 import { SavingsModule } from './savings/savings.module.js';
 import { StatsModule } from './stats/stats.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
@@ -17,6 +18,7 @@ import { TransactionsModule } from './transactions/transactions.module.js';
     TransactionsModule,
     StatsModule,
     SavingsModule,
+    RemindersModule,
   ],
   controllers: [HealthController],
 })

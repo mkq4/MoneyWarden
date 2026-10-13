@@ -25,6 +25,7 @@ model User {
   refreshTokens RefreshToken[]
   categories    Category[]
   transactions  Transaction[]
+  reminders     PurchaseReminder[]
 }
 
 enum AuthProvider {
@@ -106,4 +107,17 @@ model Transaction {
 
   @@index([userId, date])
   @@index([userId, categoryId, date])
+}
+
+/// Отложенная покупка: «подумать ещё раз» в день remindOn
+model PurchaseReminder {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  /// День напоминания без времени, как Transaction.date
+  remindOn  DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@index([userId, remindOn])
 }

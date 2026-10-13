@@ -3,6 +3,7 @@ export const ROUTES = {
   home: "/home",
   history: "/history",
   stats: "/stats",
+  reminders: "/reminders",
   settings: "/settings",
   login: "/login",
 } satisfies Record<string, string>;

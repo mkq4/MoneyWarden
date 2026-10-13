@@ -1,5 +1,7 @@
 export {
+  addDays,
   currentMonth,
+  daysUntil,
   formatDay,
   formatDayShort,
   formatMonth,
