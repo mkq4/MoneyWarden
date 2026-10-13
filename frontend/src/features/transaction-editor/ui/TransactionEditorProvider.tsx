@@ -44,7 +44,7 @@ export function TransactionEditorProvider({ children }: { children: React.ReactN
               // телефон — на весь экран, как в макете
               "inset-0 h-dvh duration-200 data-open:animate-in data-open:slide-in-from-bottom-8 data-closed:animate-out data-closed:fade-out-0",
               // десктоп — карточка по центру
-              "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[400px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:shadow-2xl sm:ring-1 sm:ring-black/5 sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0",
+              "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[400px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:shadow-2xl sm:ring-1 sm:ring-foreground/10 sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0",
             )}
           >
             {mode && (

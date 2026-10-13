@@ -5,9 +5,10 @@ import { useState } from "react";
 import { getDisplayName, useMe } from "@/entities/user";
 import { useLogout } from "@/features/auth";
 import { CategoryEditor, type EditorTarget } from "@/features/category-editor";
+import { ThemeSwitch } from "@/features/theme-switch";
 import { PageHeader } from "@/widgets/header";
 import { Button } from "@/shared/ui/button";
-import { Panel } from "@/shared/ui/panel";
+import { Panel, PanelTitle } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { CategoryList } from "../components";
 
@@ -34,6 +35,11 @@ export function SettingsPage() {
           <Button variant="outline" onClick={() => logout.mutate()} disabled={logout.isPending}>
             <LogOut /> Выйти
           </Button>
+        </Panel>
+
+        <Panel>
+          <PanelTitle>Оформление</PanelTitle>
+          <ThemeSwitch />
         </Panel>
 
         <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">

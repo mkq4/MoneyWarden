@@ -4,8 +4,11 @@ import type { SeriesKey } from "./types";
 
 export const SERIES_KEYS: SeriesKey[] = ["income", "expense"];
 
-/** Пара проверена валидатором палитр: различима при дейтеранопии/протанопии. */
-export const SERIES: Record<SeriesKey, string> = { expense: "#f07a7a", income: "#237a45" };
+/** Цвета — в globals.scss (--series-*), свои для каждой темы; пары различимы при дейтеранопии/протанопии. */
+export const SERIES: Record<SeriesKey, string> = {
+  expense: "var(--series-expense)",
+  income: "var(--series-income)",
+};
 
 export const SERIES_LABELS: Record<SeriesKey, string> = { expense: "Расходы", income: "Доходы" };
 
