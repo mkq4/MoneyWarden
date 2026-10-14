@@ -4,11 +4,13 @@ import {
   Get,
   HttpCode,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import {
   clearAuthCookies,
@@ -27,6 +29,7 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly tokens: TokensService,
+    private readonly config: ConfigService,
   ) {}
 
   @Post('register')
@@ -54,15 +57,31 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
-    if (!token) throw new UnauthorizedException();
-    try {
-      setAuthCookies(res, await this.tokens.rotate(token));
-    } catch (e) {
-      clearAuthCookies(res);
-      throw e;
-    }
+    await this.rotate(req, res);
     return { ok: true };
+  }
+
+  /**
+   * То же обновление, но для навигации: proxy фронта шлёт сюда страницу
+   * с протухшим access-токеном (refresh-кука видна только на /api/auth).
+   * Успех — обратно на next, иначе куки стираются и — на /login.
+   */
+  @Get('refresh')
+  async refreshAndRedirect(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('next') next?: string,
+  ) {
+    const frontend = this.config.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:3000',
+    );
+    try {
+      await this.rotate(req, res);
+      res.redirect(frontend + safeNextPath(next));
+    } catch {
+      res.redirect(`${frontend}/login`);
+    }
   }
 
   @Post('logout')
@@ -74,9 +93,26 @@ export class AuthController {
     return { ok: true };
   }
 
+  private async rotate(req: Request, res: Response) {
+    const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+    try {
+      if (!token) throw new UnauthorizedException();
+      setAuthCookies(res, await this.tokens.rotate(token));
+    } catch (e) {
+      clearAuthCookies(res);
+      throw e;
+    }
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: AuthUser) {
     return this.auth.getProfile(user.id);
   }
+}
+
+/** Только путь внутри фронта; «//host» и «/\host» отбрасываем — защита от open redirect. */
+function safeNextPath(next: string | undefined): string {
+  if (!next || !next.startsWith('/') || /^\/[/\\]/.test(next)) return '/';
+  return next;
 }

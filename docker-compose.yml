@@ -40,6 +40,7 @@ services:
     restart: unless-stopped
     environment:
       API_URL: http://backend:4000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET is required}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:

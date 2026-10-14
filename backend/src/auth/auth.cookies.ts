@@ -8,8 +8,10 @@ import {
 export const ACCESS_COOKIE = 'access_token';
 export const REFRESH_COOKIE = 'refresh_token';
 /**
- * Маркер «есть сессия» без секретов: refresh-кука не видна страницам фронта
- * (path=/api/auth), а фронту нужно решать, пускать ли на защищённые страницы.
+ * Подсказка без секретов «есть смысл пробовать refresh»: refresh-кука не видна
+ * страницам фронта (path=/api/auth). Пропуском не является — proxy фронта
+ * пускает только с валидным access-токеном, а с одной session шлёт на
+ * GET /api/auth/refresh, где подделка отсеивается.
  */
 export const SESSION_COOKIE = 'session';
 
