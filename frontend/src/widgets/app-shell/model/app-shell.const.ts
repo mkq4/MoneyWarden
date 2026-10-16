@@ -16,3 +16,6 @@ export const SETTINGS_NAV: NavItem = {
   match: [ROUTES.settings],
   keepMonth: false,
 };
+
+/** Экраны без вкладок снизу: «/» на телефоне — заставка с быстрыми действиями. */
+export const BOTTOM_NAV_HIDDEN_ON: string[] = [ROUTES.start];

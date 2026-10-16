@@ -1,1 +1,1 @@
-export { MobileMenu, PageHeader } from "./ui";
+export { PageHeader } from "./ui";

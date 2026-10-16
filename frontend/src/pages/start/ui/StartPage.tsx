@@ -16,7 +16,7 @@ export function StartPage() {
   const router = useRouter();
   return (
     <>
-      <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col justify-center md:hidden">
+      <div className="flex min-h-[calc(100dvh-6.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col justify-center md:hidden">
         <div className="flex flex-col items-center text-center">
           <Logo size={72} />
           <h1 className="mt-7 text-[26px] leading-tight font-semibold tracking-tight">
