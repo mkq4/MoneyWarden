@@ -36,6 +36,7 @@ docker compose up -d --build
 - фронтенд — http://localhost:3000 (на главной показан статус API и БД)
 - API — http://localhost:4000/api
 - healthcheck — http://localhost:4000/api/health
+- Swagger (документация API) — http://localhost:4000/api/docs
 - Postgres — `localhost:5433`, пользователь/пароль/БД `moneywarden`
 
 Миграции Prisma применяются автоматически при старте контейнера `backend` (`prisma migrate deploy`).
@@ -176,6 +177,13 @@ VK отдаёт email не всегда, поэтому `User.email` может 
 1. [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials) → Create OAuth client ID → Web application.
 2. Authorized redirect URI: `http://localhost:4000/api/auth/google/callback`.
 3. Прописать `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` в `.env` (и `backend/.env` для локального запуска).
+
+## Swagger
+
+Интерактивная документация — http://localhost:4000/api/docs (OpenAPI JSON — `/api/docs-json`).
+Схемы DTO собирает плагин `@nestjs/swagger` (`nest-cli.json`) из декораторов class-validator и JSDoc-комментариев, поэтому описывать поля вручную не нужно.
+
+Авторизация в Swagger UI: выполнить `POST /api/auth/login` — бэкенд поставит httpOnly-куки, и браузер будет сам отправлять их в следующих запросах.
 
 ## API финансов
 

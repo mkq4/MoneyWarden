@@ -1,7 +1,7 @@
 import {
   Baby, Banknote, Book, Briefcase, Bus, Car, CircleDollarSign, Coffee, Dog, Dumbbell,
-  Ellipsis, Fuel, Gamepad2, Gift, GraduationCap, HeartPulse, House, Laptop, PiggyBank,
-  Percent, Pill, Plane, Scissors, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles,
+  Ellipsis, Fish, Fuel, Gamepad2, Gift, GraduationCap, HeartPulse, House, Laptop, PiggyBank,
+  Percent, Pill, Plane, Scissors, Server, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles,
   TrendingUp, Utensils, Wifi, Wrench, type LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +36,7 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "shopping-bag": ShoppingBag,
   scissors: Scissors,
   "gamepad-2": Gamepad2,
+  fish: Fish,
   sparkles: Sparkles,
   dumbbell: Dumbbell,
   book: Book,
@@ -46,6 +47,7 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   gift: Gift,
   briefcase: Briefcase,
   laptop: Laptop,
+  server: Server,
   banknote: Banknote,
   percent: Percent,
   "trending-up": TrendingUp,

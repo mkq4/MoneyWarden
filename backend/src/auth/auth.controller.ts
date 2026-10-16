@@ -10,6 +10,12 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiCookieAuth,
+  ApiExcludeEndpoint,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import {
@@ -24,6 +30,7 @@ import { RegisterDto } from './dto/register.dto.js';
 import { JwtAuthGuard, type AuthUser } from './jwt-auth.guard.js';
 import { TokensService } from './tokens.service.js';
 
+@ApiTags('Авторизация')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -33,6 +40,9 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @ApiOperation({
+    summary: 'Регистрация по логину и паролю, ставит куки сессии',
+  })
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -42,6 +52,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Вход по логину и паролю, ставит куки сессии' })
   @HttpCode(200)
   async login(
     @Body() dto: LoginDto,
@@ -52,6 +63,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiOperation({ summary: 'Новая пара токенов по refresh-куке' })
   @HttpCode(200)
   async refresh(
     @Req() req: Request,
@@ -67,6 +79,7 @@ export class AuthController {
    * Успех — обратно на next, иначе куки стираются и — на /login.
    */
   @Get('refresh')
+  @ApiExcludeEndpoint()
   async refreshAndRedirect(
     @Req() req: Request,
     @Res() res: Response,
@@ -85,6 +98,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiOperation({ summary: 'Выход: отзыв refresh-токена и очистка кук' })
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
@@ -105,6 +119,8 @@ export class AuthController {
   }
 
   @Get('me')
+  @ApiOperation({ summary: 'Текущий пользователь' })
+  @ApiCookieAuth()
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: AuthUser) {
     return this.auth.getProfile(user.id);

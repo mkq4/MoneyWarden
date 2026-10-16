@@ -10,6 +10,7 @@ import {
   Res,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -31,6 +32,7 @@ interface StateCookie {
  *   GET /api/auth/:provider          → редирект на провайдера
  *   GET /api/auth/:provider/callback → ставим куки, редирект на фронт
  */
+@ApiTags('Авторизация')
 @Controller('auth')
 export class OAuthController {
   private readonly logger = new Logger(OAuthController.name);
@@ -42,6 +44,9 @@ export class OAuthController {
   ) {}
 
   @Get(':provider')
+  @ApiOperation({
+    summary: 'Вход через OAuth (google | vk) — редирект к провайдеру',
+  })
   start(@Param('provider') slug: string, @Res() res: Response) {
     const provider = this.getProvider(slug);
     // VK ID требует state длиной от 32 символов
@@ -72,6 +77,7 @@ export class OAuthController {
   }
 
   @Get(':provider/callback')
+  @ApiExcludeEndpoint()
   async callback(
     @Param('provider') slug: string,
     @Query() query: Record<string, string>,

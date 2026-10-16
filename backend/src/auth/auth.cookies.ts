@@ -18,7 +18,9 @@ export const SESSION_COOKIE = 'session';
 const base: CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  // Не по NODE_ENV: в Docker это production, но фронт на http://localhost,
+  // и Secure-куки браузер (Safari, любой — по IP) просто не сохранит.
+  secure: process.env.FRONTEND_URL?.startsWith('https://') ?? false,
 };
 
 const accessOptions: CookieOptions = { ...base, path: '/' };
