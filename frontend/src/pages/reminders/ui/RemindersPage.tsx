@@ -8,7 +8,7 @@ import { PageHeader } from "@/widgets/header";
 import { toISODate } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { ReminderList, RemindersEmpty } from "../components";
+import { AddReminderFab, ReminderList, RemindersEmpty } from "../components";
 
 export function RemindersPage() {
   const { data } = useReminders();
@@ -24,13 +24,14 @@ export function RemindersPage() {
         subtitle="Покупки, к которым стоит вернуться на холодную голову"
         action={
           data?.length ? (
-            <Button onClick={() => setCreating(true)}>
+            <Button onClick={() => setCreating(true)} className="hidden md:inline-flex">
               <Plus /> Добавить
             </Button>
           ) : null
         }
       />
-      <div className="flex flex-col gap-4 md:gap-6">
+      {/* pb-20: последний пункт не прячется под AddReminderFab */}
+      <div className="flex flex-col gap-4 pb-20 md:gap-6 md:pb-0">
         {!data ? (
           <Skeleton className="h-40 w-full rounded-2xl" />
         ) : data.length === 0 ? (
@@ -42,6 +43,7 @@ export function RemindersPage() {
           </>
         )}
       </div>
+      {data?.length ? <AddReminderFab onClick={() => setCreating(true)} /> : null}
       <ReminderCreator open={creating} onClose={() => setCreating(false)} />
     </>
   );
