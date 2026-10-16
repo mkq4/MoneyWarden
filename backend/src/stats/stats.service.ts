@@ -114,6 +114,20 @@ export class StatsService {
     );
   }
 
+  /**
+   * Месяцы (YYYY-MM), в которых есть операции, от новых к старым — для выбора месяца.
+   * Корректировки накоплений не считаются: на статистику месяца они не влияют.
+   */
+  async months(userId: number): Promise<string[]> {
+    const rows = await this.prisma.$queryRaw<{ month: string }[]>`
+      SELECT DISTINCT to_char("date", 'YYYY-MM') AS month
+      FROM "Transaction"
+      WHERE "userId" = ${userId} AND "type" <> 'SAVING_ADJUSTMENT'
+      ORDER BY month DESC
+    `;
+    return rows.map((r) => r.month);
+  }
+
   /** Суммы по дням месяца. Для текущего месяца среднее — по прошедшим дням. */
   async daily(userId: number, q: DailyStatsQueryDto) {
     const month = q.month ?? currentMonth();

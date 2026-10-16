@@ -32,3 +32,10 @@ export const useDaily = (month: string, type: CategoryType = "EXPENSE") =>
     queryFn: () => statsService.getDaily({ month, type }),
     placeholderData: keepPreviousData,
   });
+
+/** Под ключом stats: мутации операций сбрасывают его, и новый месяц появится сразу. */
+export const useActiveMonths = () =>
+  useQuery({
+    queryKey: [...QUERY_KEYS.stats, "months"],
+    queryFn: () => statsService.getActiveMonths(),
+  });

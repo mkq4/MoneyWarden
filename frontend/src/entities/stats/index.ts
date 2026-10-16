@@ -1,6 +1,7 @@
-export { useCategoryStats, useDaily, useMonthly, useSummary } from "./api/queries";
+export { useActiveMonths, useCategoryStats, useDaily, useMonthly, useSummary } from "./api/queries";
 export { statsService } from "./api/stats.service";
 export type {
+  GetActiveMonthsResponse,
   GetCategoryStatsRequest,
   GetCategoryStatsResponse,
   GetDailyStatsRequest,

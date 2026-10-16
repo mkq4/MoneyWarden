@@ -1,8 +1,9 @@
 "use client";
 
 import { CalendarDays, ChevronDown } from "lucide-react";
+import { useActiveMonths } from "@/entities/stats";
 import { cn } from "@/shared/lib/cn";
-import { currentMonth, formatMonth, shiftMonth } from "@/shared/lib/format";
+import { currentMonth, formatMonth } from "@/shared/lib/format";
 import { useMonth } from "@/shared/lib/month-param";
 import {
   DropdownMenu,
@@ -11,13 +12,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { MONTHS_BACK } from "../model/month-select.const";
 
 export function MonthPicker({ variant = "button" }: { variant?: "button" | "inline" }) {
   const [month, setMonth] = useMonth();
-  const now = currentMonth();
-  const options = Array.from({ length: MONTHS_BACK }, (_, i) => shiftMonth(now, -i));
-  if (!options.includes(month)) options.push(month);
+  const { data: active = [] } = useActiveMonths();
+  // Только месяцы с операциями + текущий (чтобы было куда вносить) + выбранный (мог прийти из ?m=)
+  const options = [...new Set([currentMonth(), month, ...active])].sort().reverse();
 
   return (
     <DropdownMenu>

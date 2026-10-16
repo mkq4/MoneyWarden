@@ -38,6 +38,14 @@ export class StatsController {
     return this.stats.monthly(user.id, q);
   }
 
+  @Get('months')
+  @ApiOperation({
+    summary: 'Месяцы, в которых есть операции (YYYY-MM, от новых к старым)',
+  })
+  months(@CurrentUser() user: AuthUser) {
+    return this.stats.months(user.id);
+  }
+
   @Get('daily')
   @ApiOperation({ summary: 'Разбивка месяца по дням' })
   daily(@CurrentUser() user: AuthUser, @Query() q: DailyStatsQueryDto) {

@@ -1,5 +1,5 @@
 import { request } from "@/shared/api";
-import { arrayOf } from "@/shared/lib/guards";
+import { arrayOf, isString } from "@/shared/lib/guards";
 import { isCategoryStats, isDailyStats, isMonthTotals, isSummary } from "../model/guards";
 import type { IStatsService } from "./stats.service.interface";
 
@@ -10,4 +10,5 @@ export const statsService: IStatsService = {
   getMonthly: ({ until, months }) =>
     request("GET", "/stats/monthly", arrayOf(isMonthTotals), { query: { until, months } }),
   getDaily: ({ month, type }) => request("GET", "/stats/daily", isDailyStats, { query: { month, type } }),
+  getActiveMonths: () => request("GET", "/stats/months", arrayOf(isString)),
 };

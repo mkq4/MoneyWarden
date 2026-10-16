@@ -29,9 +29,13 @@ export interface GetDailyStatsRequest {
 }
 export type GetDailyStatsResponse = DailyStats;
 
+/** GET /stats/months — месяцы с операциями (YYYY-MM), от новых к старым */
+export type GetActiveMonthsResponse = string[];
+
 export interface IStatsService {
   getSummary(params: GetSummaryRequest): Promise<GetSummaryResponse>;
   getCategories(params: GetCategoryStatsRequest): Promise<GetCategoryStatsResponse>;
   getMonthly(params: GetMonthlyStatsRequest): Promise<GetMonthlyStatsResponse>;
   getDaily(params: GetDailyStatsRequest): Promise<GetDailyStatsResponse>;
+  getActiveMonths(): Promise<GetActiveMonthsResponse>;
 }
