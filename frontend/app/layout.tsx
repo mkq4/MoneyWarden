@@ -11,10 +11,17 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "MoneyWarden",
   description: "Ваши деньги под контролем: расходы, доходы и статистика",
+  // «На экран Домой» в Safari: открывается без адресной строки, контент под статус-баром
+  appleWebApp: { capable: true, title: "MoneyWarden", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f7f8",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#111113" },
+  ],
+  // Отступы под чёлку и полоску «домой» — через env(safe-area-inset-*)
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

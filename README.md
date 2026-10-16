@@ -231,3 +231,30 @@ VK отдаёт email не всегда, поэтому `User.email` может 
 | GET | `/api/stats/categories?type=EXPENSE` | по категориям: сумма, кол-во, доля 0..1, по убыванию |
 | GET | `/api/stats/monthly?months=12&until=YYYY-MM&categoryId=` | помесячно доходы/расходы/баланс, пустые месяцы = 0 |
 | GET | `/api/stats/daily?month=YYYY-MM&type=EXPENSE` | по дням месяца + `total`, `avgPerDay`, `maxDay` |
+
+## Деплой
+
+Продакшен: https://94-159-103-125.sslip.io (Swagger — `/api/docs`). Конфигурация — в `deploy/`: тот же стек плюс Caddy, который выпускает сертификат Let's Encrypt и проксирует всё на фронтенд. Наружу открыты только 80/443.
+
+На сервере всё лежит в `/opt/moneywarden` (`docker-compose.yml`, `Caddyfile`, `.env` с секретами — генерируются на сервере, в git не попадают, пример — `deploy/.env.example`).
+
+Образы собираются локально: на сервере 1 ГБ памяти, сборки Next там не хватает.
+
+```bash
+SSH="ssh -i ~/.ssh/moneywarden_deploy root@94.159.103.125"
+
+docker build --platform linux/amd64 -t moneywarden-backend:prod backend
+docker build --platform linux/amd64 -t moneywarden-frontend:prod frontend
+docker save moneywarden-backend:prod moneywarden-frontend:prod | gzip | $SSH 'gunzip | docker load'
+
+# если менялись deploy/docker-compose.yml или Caddyfile
+scp -i ~/.ssh/moneywarden_deploy deploy/docker-compose.yml deploy/Caddyfile root@94.159.103.125:/opt/moneywarden/
+
+$SSH 'cd /opt/moneywarden && docker compose up -d && docker image prune -f'
+```
+
+Миграции применяются при старте бэкенда. Бэкап базы: `$SSH 'cd /opt/moneywarden && docker compose exec -T db pg_dump -U moneywarden -Fc moneywarden' > backup.dump`.
+
+### PWA
+
+`app/manifest.ts` + `appleWebApp` в `app/layout.tsx`: в Safari «Поделиться → На экран Домой» — приложение открывается без адресной строки. Отступы под чёлку — `env(safe-area-inset-*)` (`viewportFit: "cover"`).

@@ -3,7 +3,7 @@ import { Logo } from "@/shared/ui/logo";
 
 export function LoginPage() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center px-5 py-10">
+    <main className="flex min-h-dvh flex-col items-center justify-center px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-[max(env(safe-area-inset-bottom),2.5rem)]">
       <div className="w-full max-w-[380px]">
         <div className="flex flex-col items-center text-center">
           <Logo size={72} />

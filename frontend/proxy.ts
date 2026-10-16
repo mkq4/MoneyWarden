@@ -57,5 +57,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Всё, кроме статики Next и файлов из public.
-  matcher: ["/((?!_next/|icon.png|apple-icon.png|logo.png|favicon.ico).*)"],
+  matcher: ["/((?!_next/|icons/|icon.png|apple-icon.png|logo.png|favicon.ico|manifest.webmanifest).*)"],
 };
