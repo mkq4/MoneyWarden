@@ -63,7 +63,7 @@ export function HistoryPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Поиск по комментарию"
-            className="h-10 w-full rounded-xl border border-border bg-surface pr-9 pl-9 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/25"
+            className="h-10 w-full rounded-xl border border-border bg-surface pr-9 pl-9 text-base outline-none md:text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/25"
           />
           {search && (
             <button

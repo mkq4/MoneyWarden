@@ -138,7 +138,7 @@ export function TransactionForm({ mode, onDone, onClose }: FormProps & { mode: A
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Комментарий"
                 maxLength={500}
-                className="h-10 min-w-0 flex-1 rounded-xl bg-muted px-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/30"
+                className="h-10 min-w-0 flex-1 rounded-xl bg-muted px-3 text-base outline-none md:text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/30"
               />
             </div>
           </div>
