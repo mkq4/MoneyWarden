@@ -7,7 +7,7 @@ import { isCategoryType } from "@/entities/category";
 import { useTransactions } from "@/entities/transaction";
 import { MonthPicker } from "@/features/month-select";
 import { PageHeader } from "@/widgets/header";
-import { formatMoney, pluralize } from "@/shared/lib/format";
+import { formatDayShort, formatMoney, pluralize } from "@/shared/lib/format";
 import { useMonth } from "@/shared/lib/month-param";
 import { Button } from "@/shared/ui/button";
 import { Panel } from "@/shared/ui/panel";
@@ -19,12 +19,16 @@ export function HistoryPage() {
   const initialType = params?.get("type");
   const [month] = useMonth();
   const [type, setType] = useState<TypeFilter>(isCategoryType(initialType) ? initialType : "ALL");
-  const [categoryIds, setCategoryIds] = useState<number[]>([]);
+  const [categoryIds, setCategoryIds] = useState<number[]>(() => parseIds(params?.get("category")));
+  const [day, setDay] = useState(() => parseDay(params?.get("day")));
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search.trim());
 
+  // День из статистики действует, пока выбран его месяц.
+  const activeDay = day?.startsWith(month) ? day : null;
+
   const query = useTransactions({
-    month,
+    ...(activeDay ? { from: activeDay, to: activeDay } : { month }),
     type: type === "ALL" ? undefined : type,
     categoryIds,
     search: deferredSearch || undefined,
@@ -57,6 +61,17 @@ export function HistoryPage() {
           }}
         />
         <CategoryFilter type={type} value={categoryIds} onChange={setCategoryIds} />
+        {activeDay && (
+          <button
+            type="button"
+            onClick={() => setDay(null)}
+            className="flex h-10 shrink-0 items-center justify-between gap-2 rounded-xl border border-foreground/20 bg-surface px-3 text-sm font-medium transition hover:bg-muted/60"
+            aria-label="Показать весь месяц"
+          >
+            {formatDayShort(activeDay)}
+            <X className="size-4 text-muted-foreground" />
+          </button>
+        )}
         <label className="relative flex-1 md:max-w-xs">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -123,4 +138,18 @@ export function HistoryPage() {
       </Panel>
     </>
   );
+}
+
+/** ?category=1,2 → [1, 2]; мусор отбрасываем. */
+function parseIds(raw: string | null | undefined): number[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n > 0);
+}
+
+/** ?day=YYYY-MM-DD или null. */
+function parseDay(raw: string | null | undefined): string | null {
+  return raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
 }

@@ -5,6 +5,7 @@ import type { BreakdownRow, CategoryStats } from "../model/types";
 export function toBreakdownRows(stats: CategoryStats, limit?: number): BreakdownRow[] {
   const rows: BreakdownRow[] = stats.items.map((i) => ({
     key: String(i.category.id),
+    categoryIds: [i.category.id],
     name: i.category.name,
     icon: i.category.icon,
     color: i.category.color ?? OTHER_COLOR,
@@ -18,6 +19,7 @@ export function toBreakdownRows(stats: CategoryStats, limit?: number): Breakdown
     ...rows.slice(0, limit),
     {
       key: "other",
+      categoryIds: rest.flatMap((r) => r.categoryIds),
       name: "Остальное",
       icon: "ellipsis",
       color: OTHER_COLOR,

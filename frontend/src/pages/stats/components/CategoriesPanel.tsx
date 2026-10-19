@@ -10,12 +10,15 @@ import {
   toBreakdownRows,
   useCategoryStats,
 } from "@/entities/stats";
+import { ROUTES } from "@/shared/config";
+import { useHrefWithMonth } from "@/shared/lib/month-param";
 import { Panel, PanelTitle } from "@/shared/ui/panel";
 import { TypeSwitch } from "./TypeSwitch";
 
 export function CategoriesPanel({ month }: { month: string }) {
   const [type, setType] = useState<CategoryType>("EXPENSE");
   const { data } = useCategoryStats(month, type);
+  const withMonth = useHrefWithMonth();
   const rows = data ? toBreakdownRows(data) : [];
   return (
     <Panel>
@@ -32,7 +35,10 @@ export function CategoriesPanel({ month }: { month: string }) {
             className="w-[220px] md:w-[260px] md:max-w-[260px]"
           />
           <div className="w-full md:flex-1">
-            <CategoryBars rows={rows} />
+            <CategoryBars
+              rows={rows}
+              getHref={(r) => withMonth(ROUTES.history, { type, category: r.categoryIds.join(",") })}
+            />
           </div>
         </div>
       )}

@@ -64,6 +64,8 @@ export interface DailyStats {
 /** Строка разбивки по категориям (донат и полосы) */
 export interface BreakdownRow {
   key: string;
+  /** Id категорий строки: одна, или несколько у «Остальное». */
+  categoryIds: number[];
   name: string;
   icon: string | null;
   color: string;

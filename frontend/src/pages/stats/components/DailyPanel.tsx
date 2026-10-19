@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import type { CategoryType } from "@/entities/category";
@@ -9,6 +10,7 @@ import { ChartContainer, ChartTooltip } from "@/shared/ui/chart";
 import { MoneyTooltip } from "@/shared/ui/money-tooltip";
 import { Panel, PanelTitle } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { historyHref } from "../lib/history-href";
 import { CHART_CONFIG, SERIES, SERIES_LABELS } from "../model/stats.const";
 import { DailyFigure } from "./DailyFigure";
 import { TypeSwitch } from "./TypeSwitch";
@@ -17,6 +19,7 @@ export function DailyPanel({ month }: { month: string }) {
   const [type, setType] = useState<CategoryType>("EXPENSE");
   const { data } = useDaily(month, type);
   const series = type === "EXPENSE" ? "expense" : "income";
+  const router = useRouter();
 
   return (
     <Panel>
@@ -38,7 +41,17 @@ export function DailyPanel({ month }: { month: string }) {
             )}
           </div>
           <ChartContainer config={CHART_CONFIG} className="aspect-auto h-56 w-full">
-            <BarChart data={data.days} barCategoryGap="18%" margin={{ left: 0, right: 0, top: 8 }}>
+            <BarChart
+              data={data.days}
+              barCategoryGap="18%"
+              margin={{ left: 0, right: 0, top: 8 }}
+              className="cursor-pointer"
+              onClick={({ activeLabel }) => {
+                // Тап по дню → история за этот день (пустые дни не открываем).
+                const day = data.days.find((d) => d.date === activeLabel);
+                if (day?.total) router.push(historyHref(month, { type, day: day.date }));
+              }}
+            >
               <CartesianGrid vertical={false} stroke="var(--border)" />
               <XAxis
                 dataKey="date"

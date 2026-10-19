@@ -4,6 +4,9 @@ import type { Transaction, TransactionPage, TransactionType } from "../model/typ
 export interface TransactionFilters {
   /** YYYY-MM */
   month?: string;
+  /** YYYY-MM-DD — вместо month, для периода (например, одного дня) */
+  from?: string;
+  to?: string;
   type?: TransactionType;
   categoryIds?: number[];
   /** поиск по комментарию */

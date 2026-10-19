@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 import { useMonthly } from "@/entities/stats";
 import { currentMonth, formatMoneyAxis, formatMonth, formatMonthShort } from "@/shared/lib/format";
@@ -7,6 +8,7 @@ import { ChartContainer, ChartTooltip } from "@/shared/ui/chart";
 import { MoneyTooltip } from "@/shared/ui/money-tooltip";
 import { Panel, PanelTitle } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { historyHref } from "../lib/history-href";
 import { CHART_CONFIG, SERIES, SERIES_KEYS, SERIES_LABELS } from "../model/stats.const";
 import { SeriesLegend } from "./SeriesLegend";
 
@@ -15,6 +17,7 @@ export function MonthlyPanel({ month }: { month: string }) {
   const until = month < currentMonth() ? currentMonth() : month;
   const { data } = useMonthly(until, 12);
   const hasData = data?.some((m) => m.income || m.expense);
+  const router = useRouter();
 
   return (
     <Panel>
@@ -25,7 +28,18 @@ export function MonthlyPanel({ month }: { month: string }) {
         <div className="py-14 text-center text-sm text-muted-foreground">Пока нет данных</div>
       ) : (
         <ChartContainer config={CHART_CONFIG} className="aspect-auto h-64 w-full">
-          <BarChart data={data} barGap={2} barCategoryGap="22%" margin={{ left: 0, right: 0, top: 8 }}>
+          <BarChart
+            data={data}
+            barGap={2}
+            barCategoryGap="22%"
+            margin={{ left: 0, right: 0, top: 8 }}
+            className="cursor-pointer"
+            onClick={({ activeLabel }) => {
+              // Тап по месяцу → история за этот месяц.
+              const m = data.find((x) => x.month === activeLabel);
+              if (m && (m.income || m.expense)) router.push(historyHref(m.month));
+            }}
+          >
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis
               dataKey="month"
