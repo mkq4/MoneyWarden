@@ -3,7 +3,6 @@
 import { MonthPicker } from "@/features/month-select";
 import { PageHeader } from "@/widgets/header";
 import { SavingsPanel } from "@/widgets/savings-panel";
-import { formatMonth } from "@/shared/lib/format";
 import { useMonth } from "@/shared/lib/month-param";
 import { CategoriesPanel, DailyPanel, MonthlyPanel, SummaryTiles } from "../components";
 
@@ -13,7 +12,7 @@ export function StatsPage() {
     <>
       <PageHeader
         title="Статистика"
-        subtitle={formatMonth(month)}
+        subtitle="Куда уходят деньги и откуда приходят"
         action={
           <div className="hidden md:block">
             <MonthPicker />
