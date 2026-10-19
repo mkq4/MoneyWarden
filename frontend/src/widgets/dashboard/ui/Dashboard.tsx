@@ -2,7 +2,7 @@
 
 import { getDisplayName, useMe } from "@/entities/user";
 import { MonthPicker } from "@/features/month-select";
-import { QuickActions } from "@/features/transaction-editor";
+import { AddFabs } from "@/features/transaction-editor";
 import { ROUTES } from "@/shared/config";
 import { currentMonth, formatMonth } from "@/shared/lib/format";
 import { useHrefWithMonth, useMonth } from "@/shared/lib/month-param";
@@ -10,7 +10,8 @@ import { Panel, PanelTitle } from "@/shared/ui/panel";
 import { ExpenseBreakdown, MonthExtras, RecentTransactions, SummaryCards } from "../components";
 
 /**
- * Главная: итоги месяца, расходы по категориям, последние операции.
+ * Главная: итоги месяца, расходы по категориям, последние операции;
+ * добавить расход/доход — плавающие «−»/«+» (телефон) или кнопки в сайдбаре (десктоп).
  * notices — уведомления над итогами (слот, чтобы виджет не зависел от других виджетов).
  */
 export function Dashboard({ notices }: { notices?: React.ReactNode }) {
@@ -58,10 +59,9 @@ export function Dashboard({ notices }: { notices?: React.ReactNode }) {
         </Panel>
       </div>
 
-      <Panel>
-        <PanelTitle>Быстрые действия</PanelTitle>
-        <QuickActions />
-      </Panel>
+      {/* Телефон: место под плавающие «−»/«+», чтобы не закрывали низ «Истории» */}
+      <div className="h-16 md:hidden" />
+      <AddFabs />
     </div>
   );
 }
