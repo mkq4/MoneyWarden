@@ -178,6 +178,26 @@ VK отдаёт email не всегда, поэтому `User.email` может 
 2. Authorized redirect URI: `http://localhost:4000/api/auth/google/callback`.
 3. Прописать `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` в `.env` (и `backend/.env` для локального запуска).
 
+### Вход по Face ID / Touch ID (passkeys)
+
+Стандарт WebAuthn, библиотека [SimpleWebAuthn](https://simplewebauthn.dev). Включается в Настройках, на экране входа появляется кнопка «Войти по Face ID».
+
+- Биометрию проверяет само устройство; закрытый ключ не покидает его (на iPhone — Связка ключей iCloud). Сервер хранит только публичный ключ (`Passkey`) и проверяет им подпись.
+- Каждая операция — два шага: `…/options` выдаёт челлендж, устройство его подписывает, сервер проверяет. Челлендж одноразовый, живёт 5 минут в памяти бэкенда; в куке `passkey_challenge` — только его id. Поэтому перехваченный ответ повторно не сработает.
+- Ключи discoverable: логин вводить не нужно, устройство само предлагает аккаунт.
+- `rpID` и origin берутся из `FRONTEND_URL`: ключ привязан к домену. Работает на `localhost` и по HTTPS; при смене домена ключи нужно добавить заново.
+
+| Метод | Путь | Описание |
+| ----- | ---- | -------- |
+| POST | `/api/auth/passkey/register/options` | параметры для создания ключа (нужна авторизация) |
+| POST | `/api/auth/passkey/register` | `{ response, name? }` — сохранить ключ |
+| POST | `/api/auth/passkey/login/options` | параметры для входа |
+| POST | `/api/auth/passkey/login` | `{ response }` — вход, ставит куки сессии |
+| GET | `/api/auth/passkey` | мои ключи |
+| DELETE | `/api/auth/passkey/:id` | удалить ключ |
+
+В e2e (`backend/test/passkey.e2e-spec.ts`) весь сценарий проверяется программным аутентификатором (`test/virtual-authenticator.ts`, ключ P-256 из `node:crypto`): регистрация, вход, повтор старого ответа, вход без биометрии, чужой ключ, удаление.
+
 ## Swagger
 
 Интерактивная документация — http://localhost:4000/api/docs (OpenAPI JSON — `/api/docs-json`).

@@ -7,6 +7,9 @@ import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { GoogleProvider } from './oauth/google.provider.js';
 import { OAUTH_PROVIDERS } from './oauth/oauth-provider.js';
 import { OAuthController } from './oauth/oauth.controller.js';
+import { ChallengeStore } from './passkey/challenge-store.js';
+import { PasskeyController } from './passkey/passkey.controller.js';
+import { PasskeyService } from './passkey/passkey.service.js';
 import { VkProvider } from './oauth/vk.provider.js';
 import { ACCESS_TOKEN_TTL_SEC, TokensService } from './tokens.service.js';
 
@@ -20,13 +23,15 @@ import { ACCESS_TOKEN_TTL_SEC, TokensService } from './tokens.service.js';
       }),
     }),
   ],
-  // AuthController первым: его статические маршруты (/me, /login)
-  // должны матчиться раньше OAuth-шных /auth/:provider.
-  controllers: [AuthController, OAuthController],
+  // OAuthController последним: его /auth/:provider иначе перехватит
+  // статические маршруты (/me, /login, /passkey).
+  controllers: [AuthController, PasskeyController, OAuthController],
   providers: [
     AuthService,
     TokensService,
     JwtAuthGuard,
+    PasskeyService,
+    ChallengeStore,
     GoogleProvider,
     VkProvider,
     {

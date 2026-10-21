@@ -15,12 +15,15 @@ export const REFRESH_COOKIE = 'refresh_token';
  */
 export const SESSION_COOKIE = 'session';
 
+// Не по NODE_ENV: в Docker это production, но фронт на http://localhost,
+// и Secure-куки браузер (Safari, любой — по IP) просто не сохранит.
+export const COOKIE_SECURE =
+  process.env.FRONTEND_URL?.startsWith('https://') ?? false;
+
 const base: CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
-  // Не по NODE_ENV: в Docker это production, но фронт на http://localhost,
-  // и Secure-куки браузер (Safari, любой — по IP) просто не сохранит.
-  secure: process.env.FRONTEND_URL?.startsWith('https://') ?? false,
+  secure: COOKIE_SECURE,
 };
 
 const accessOptions: CookieOptions = { ...base, path: '/' };

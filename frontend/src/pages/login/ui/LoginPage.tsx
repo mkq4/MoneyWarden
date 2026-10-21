@@ -1,4 +1,5 @@
 import { LoginForm } from "@/features/auth";
+import { PasskeyLoginButton } from "@/features/passkey";
 import { Logo } from "@/shared/ui/logo";
 
 export function LoginPage() {
@@ -16,8 +17,9 @@ export function LoginPage() {
             Просто отслеживайте расходы, доходы и смотрите, на что уходят деньги.
           </p>
         </div>
-        <div className="mt-9">
+        <div className="mt-9 flex flex-col gap-3">
           <LoginForm />
+          <PasskeyLoginButton />
         </div>
       </div>
     </main>

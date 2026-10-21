@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { getDisplayName, useMe } from "@/entities/user";
 import { useLogout } from "@/features/auth";
+import { PasskeyPanel } from "@/features/passkey";
 import { CategoryEditor, type EditorTarget } from "@/features/category-editor";
 import { ThemeSwitch } from "@/features/theme-switch";
 import { PageHeader } from "@/widgets/header";
@@ -36,6 +37,8 @@ export function SettingsPage() {
             <LogOut /> Выйти
           </Button>
         </Panel>
+
+        <PasskeyPanel />
 
         <Panel>
           <PanelTitle>Оформление</PanelTitle>

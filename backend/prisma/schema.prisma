@@ -22,6 +22,7 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   accounts      Account[]
+  passkeys      Passkey[]
   refreshTokens RefreshToken[]
   categories    Category[]
   transactions  Transaction[]
@@ -43,6 +44,27 @@ model Account {
   createdAt         DateTime     @default(now())
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+/// Passkey (WebAuthn): вход по Face ID / Touch ID / отпечатку.
+/// Хранится только публичный ключ — закрытый не покидает устройство.
+model Passkey {
+  /// base64url id ключа от аутентификатора
+  id         String    @id
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// COSE-ключ
+  publicKey  Bytes
+  /// Счётчик подписей — защита от клонированных ключей (у Apple всегда 0)
+  counter    BigInt    @default(0)
+  /// usb | nfc | ble | internal | hybrid — подсказка браузеру при входе
+  transports String[]
+  /// Название для списка в настройках, например «iPhone»
+  name       String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
   @@index([userId])
 }
 

@@ -9,4 +9,5 @@ export const QUERY_KEYS = {
   stats: ["stats"],
   savings: ["savings"],
   reminders: ["reminders"],
+  passkeys: ["passkeys"],
 } satisfies Record<string, readonly string[]>;

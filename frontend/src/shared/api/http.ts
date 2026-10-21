@@ -21,6 +21,12 @@ export const isOkResponse: Guard<OkResponse> = shape<OkResponse>({
   ok: (value): value is true => value === true,
 });
 
+/**
+ * Запросы, где 401 — это ответ «неверные данные», а не протухшая сессия:
+ * refresh для них не пробуем (иначе ошибка входа превратится в редирект).
+ */
+const NO_REFRESH = /^\/auth\/(login|register|refresh|logout|passkey\/login)/;
+
 let refreshing: Promise<boolean> | null = null;
 
 /** Параллельные 401 ждут один и тот же refresh. */
@@ -75,7 +81,7 @@ export async function request<TResponse, TBody = never>(
     });
 
   let res = await doFetch();
-  if (res.status === 401 && !path.startsWith("/auth/")) {
+  if (res.status === 401 && !NO_REFRESH.test(path)) {
     if (await refreshSession()) {
       res = await doFetch();
     } else {
