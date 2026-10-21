@@ -9,7 +9,6 @@ import type { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';
-import type { OAuthProfile } from './oauth/oauth-provider.js';
 import { hashPassword, verifyPassword } from './password.js';
 import { TokensService, type TokenPair } from './tokens.service.js';
 
@@ -46,37 +45,6 @@ export class AuthService {
     return this.tokens.issue(user.id);
   }
 
-  /**
-   * Вход через OAuth:
-   * 1. аккаунт провайдера уже привязан — входим в этого пользователя;
-   * 2. есть пользователь с тем же подтверждённым email — привязываем;
-   * 3. иначе создаём нового пользователя (email может отсутствовать,
-   *    например VK не всегда его отдаёт).
-   */
-  async loginWithOAuth(profile: OAuthProfile): Promise<TokenPair> {
-    const { provider, providerAccountId } = profile;
-    const accounts = { create: { provider, providerAccountId } };
-
-    const account = await this.prisma.account.findUnique({
-      where: { provider_providerAccountId: { provider, providerAccountId } },
-    });
-    if (account) return this.tokens.issue(account.userId);
-
-    const email = profile.emailVerified ? profile.email : null;
-    const existing = email
-      ? await this.prisma.user.findUnique({ where: { email } })
-      : null;
-    if (existing) {
-      await this.prisma.account.create({
-        data: { provider, providerAccountId, userId: existing.id },
-      });
-      return this.tokens.issue(existing.id);
-    }
-
-    const user = await this.createUser({ email, name: profile.name, accounts });
-    return this.tokens.issue(user.id);
-  }
-
   /** Новый пользователь сразу получает стартовый набор категорий. */
   private createUser(data: Prisma.UserCreateInput) {
     return this.prisma.$transaction(async (tx) => {
@@ -89,7 +57,6 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { accounts: { select: { provider: true } } },
     });
     if (!user) throw new NotFoundException();
     return {
@@ -98,8 +65,6 @@ export class AuthService {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
-      hasPassword: user.passwordHash !== null,
-      providers: user.accounts.map((a) => a.provider),
     };
   }
 }

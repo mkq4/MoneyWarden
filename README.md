@@ -110,7 +110,9 @@ npx shadcn@latest add card input dialog
 | ------------------------ | -------------------------------------------------------------- | --------------------------------------- |
 | `.env`                   | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`            | креды Postgres в Docker                 |
 | `.env`                   | `POSTGRES_PORT`, `BACKEND_PORT`, `FRONTEND_PORT`               | порты на хосте                          |
+| `.env`, `backend/.env`   | `JWT_ACCESS_SECRET`                                            | секрет подписи access-токенов (общий для бэкенда и proxy фронта) |
 | `backend/.env`           | `DATABASE_URL`, `PORT`, `CORS_ORIGIN`                          | локальный запуск бэкенда                |
+| `backend/.env`           | `FRONTEND_URL`                                                 | адрес фронта: редирект после refresh, домен для Face ID, Secure у кук |
 | `frontend/.env.local`    | `API_URL`                                                      | адрес API для серверных запросов Next   |
 
 Внутри Docker фронтенд ходит в API по `http://backend:4000`. Если понадобятся запросы к API прямо из браузера, добавьте `NEXT_PUBLIC_API_URL` (он вшивается в бандл на этапе сборки, поэтому передавать его нужно как build arg).
@@ -159,24 +161,8 @@ src/
 | POST | `/api/auth/refresh` | новая пара токенов по refresh-куке |
 | POST | `/api/auth/logout` | отзыв refresh-токена, очистка кук |
 | GET | `/api/auth/me` | текущий пользователь (нужна авторизация) |
-| GET | `/api/auth/vk` | старт входа через VK ID → после успеха редирект на `FRONTEND_URL`, при ошибке на `FRONTEND_URL/login?error=oauth` |
-| GET | `/api/auth/google` | то же для Google |
 
 Защитить свой эндпоинт: `@UseGuards(JwtAuthGuard)` + `@CurrentUser() user`.
-
-### Настройка VK ID
-
-1. [Кабинет VK ID](https://id.vk.ru/about/business/go) → создать веб-приложение.
-2. Доверенный redirect URL: `http://localhost:4000/api/auth/vk/callback`; в доступах включить email.
-3. Прописать `VK_CLIENT_ID` (ID приложения) в `.env` и `backend/.env`. Client secret не нужен — используется PKCE.
-
-VK отдаёт email не всегда, поэтому `User.email` может быть `null`.
-
-### Настройка Google
-
-1. [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials) → Create OAuth client ID → Web application.
-2. Authorized redirect URI: `http://localhost:4000/api/auth/google/callback`.
-3. Прописать `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` в `.env` (и `backend/.env` для локального запуска).
 
 ### Вход по Face ID / Touch ID (passkeys)
 

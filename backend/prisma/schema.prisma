@@ -12,39 +12,19 @@ datasource db {
 model User {
   id            Int            @id @default(autoincrement())
   /// Логин для входа по паролю (хранится в нижнем регистре).
-  /// null — пользователь пришёл только через OAuth
+  /// Регистрация всегда задаёт логин; null — только у старых тестовых записей
   username      String?        @unique
-  /// null — OAuth-провайдер (например, VK) не отдал email
   email         String?        @unique
   name          String?
-  /// null — пользователь зарегистрирован только через OAuth
+  /// scrypt-хеш; регистрация всегда задаёт пароль
   passwordHash  String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  accounts      Account[]
   passkeys      Passkey[]
   refreshTokens RefreshToken[]
   categories    Category[]
   transactions  Transaction[]
   reminders     PurchaseReminder[]
-}
-
-enum AuthProvider {
-  GOOGLE
-  VK
-}
-
-/// Привязка внешнего OAuth-аккаунта к пользователю
-model Account {
-  id                Int          @id @default(autoincrement())
-  provider          AuthProvider
-  providerAccountId String
-  userId            Int
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt         DateTime     @default(now())
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
 }
 
 /// Passkey (WebAuthn): вход по Face ID / Touch ID / отпечатку.
